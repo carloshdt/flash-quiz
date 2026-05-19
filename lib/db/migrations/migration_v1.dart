@@ -181,5 +181,45 @@ class MigrationV1 {
 
     // Seed: perfil inicial
     await db.insert('perfil', {'nome': 'Usuário'});
+
+    // Seed: tema CFC com seções e fases placeholder
+    final temaId = await db.insert('temas', {
+      'nome': 'CFC — Habilitação',
+      'icone': '🚗',
+      'desbloqueado': 1,
+    });
+
+    final secoes = [
+      {'nome': 'Geral', 'ordem': 0},
+      {'nome': 'Placas e Sinais', 'ordem': 1},
+      {'nome': 'Legislação', 'ordem': 2},
+      {'nome': 'Direção Defensiva', 'ordem': 3},
+      {'nome': 'Primeiros Socorros', 'ordem': 4},
+      {'nome': 'Mecânica Básica', 'ordem': 5},
+    ];
+
+    for (final s in secoes) {
+      final secaoId = await db.insert('secoes', {...s, 'tema_id': temaId});
+
+      for (int i = 1; i <= 3; i++) {
+        final faseId = await db.insert('fases', {
+          'secao_id': secaoId,
+          'nome': 'Fase $i',
+          'ordem': i,
+        });
+
+        // 3 cards placeholder — conteúdo real será adicionado no Plano 5
+        for (int c = 1; c <= 3; c++) {
+          await db.insert('cards', {
+            'fase_id': faseId,
+            'pergunta': 'Pergunta $c — Fase $i — ${s['nome']}',
+            'resposta': 'Resposta correta $c',
+            'alternativa_b': 'Alternativa B',
+            'alternativa_c': 'Alternativa C',
+            'alternativa_d': 'Alternativa D',
+          });
+        }
+      }
+    }
   }
 }
