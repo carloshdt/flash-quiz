@@ -2,9 +2,11 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
+import 'controllers/flashcard_controller.dart';
 import 'controllers/home_controller.dart';
 import 'controllers/secoes_controller.dart';
 import 'controllers/trilha_controller.dart';
+import 'screens/flashcard/flashcard_screen.dart';
 import 'screens/home/home_screen.dart';
 import 'screens/secoes/secoes_screen.dart';
 import 'screens/trilha/trilha_screen.dart';
@@ -38,6 +40,19 @@ final _router = GoRouter(
         );
       },
     ),
+    GoRoute(
+      path: '/flashcard/:faseId',
+      builder: (_, state) {
+        final faseId = int.parse(state.pathParameters['faseId']!);
+        final nomeFase = state.uri.queryParameters['nomeFase'] ?? '';
+        final nomeTema = state.uri.queryParameters['nomeTema'] ?? '';
+        return FlashcardScreen(
+          faseId: faseId,
+          nomeFase: nomeFase,
+          nomeTema: nomeTema,
+        );
+      },
+    ),
   ],
 );
 
@@ -51,6 +66,7 @@ class FlashQuizApp extends StatelessWidget {
         ChangeNotifierProvider(create: (_) => HomeController()),
         ChangeNotifierProvider(create: (_) => SecoesController()),
         ChangeNotifierProvider(create: (_) => TrilhaController()),
+        ChangeNotifierProvider(create: (_) => FlashcardController()),
       ],
       child: MaterialApp.router(
         title: 'FlashQuiz',

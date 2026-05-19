@@ -4,10 +4,11 @@ import '../models/fase.dart';
 import '../models/quiz_tentativa.dart';
 import '../repositories/fase_repository.dart';
 import '../repositories/card_repository.dart';
+import '../repositories/progresso_repository.dart';
+import '../repositories/config_repository.dart';
 
-// Representa um item na trilha: pode ser fase de flashcard ou nó de quiz
 class ItemTrilha {
-  final bool ehQuiz; // false = flashcard, true = quiz
+  final bool ehQuiz;
   final Fase fase;
   final int totalCards;
   final int cardsVistos;
@@ -23,8 +24,11 @@ class ItemTrilha {
     this.desbloqueado = false,
   });
 
+  // Fase concluída = todos os cards vistos
+  // Quiz concluído = tentativa com pontuação >= 70
   bool get concluido => ehQuiz
-      ? (melhorTentativa?.concluido ?? false) && (melhorTentativa?.pontuacao ?? 0) >= 70
+      ? (melhorTentativa?.concluido ?? false) &&
+          (melhorTentativa?.pontuacao ?? 0) >= 70
       : cardsVistos >= totalCards && totalCards > 0;
 
   bool get emAndamento => !concluido && desbloqueado;
@@ -36,44 +40,61 @@ class ItemTrilha {
 class TrilhaController extends ChangeNotifier {
   final FaseRepository _faseRepo;
   final CardRepository _cardRepo;
+  final ProgressoRepository _progressoRepo;
+  final ConfigRepository _configRepo;
 
   List<ItemTrilha> itens = [];
   bool carregando = false;
 
-  TrilhaController({FaseRepository? faseRepo, CardRepository? cardRepo})
-      : _faseRepo = faseRepo ?? FaseRepository(),
-        _cardRepo = cardRepo ?? CardRepository();
+  TrilhaController({
+    FaseRepository? faseRepo,
+    CardRepository? cardRepo,
+    ProgressoRepository? progressoRepo,
+    ConfigRepository? configRepo,
+  })  : _faseRepo = faseRepo ?? FaseRepository(),
+        _cardRepo = cardRepo ?? CardRepository(),
+        _progressoRepo = progressoRepo ?? ProgressoRepository(),
+        _configRepo = configRepo ?? ConfigRepository();
 
   Future<void> carregar(int secaoId) async {
     carregando = true;
     notifyListeners();
 
     final fases = await _faseRepo.getFasesPorSecao(secaoId);
+    // Percentual mínimo para desbloquear o quiz da fase
+    final minPercentual = await _configRepo.getValorInt(
+        'flashcard_min_percentual_para_quiz',
+        padrao: 60);
+
     final novosItens = <ItemTrilha>[];
 
     for (int i = 0; i < fases.length; i++) {
       final fase = fases[i];
       final total = await _cardRepo.contarCardsPorFase(fase.id);
-      // Primeira fase sempre desbloqueada; as seguintes dependem do quiz anterior
-      final desbloqueada = i == 0 ||
-          (novosItens.isNotEmpty && novosItens.last.concluido);
+      final vistos = await _progressoRepo.getCardsVistosCount(fase.id);
 
-      // Nó de flashcard
-      novosItens.add(ItemTrilha(
+      // Primeira fase sempre desbloqueada; seguintes dependem do quiz anterior
+      final desbloqueadaFlashcard =
+          i == 0 || (novosItens.isNotEmpty && novosItens.last.concluido);
+
+      final itemFlashcard = ItemTrilha(
         ehQuiz: false,
         fase: fase,
         totalCards: total,
-        cardsVistos: 0, // Plano 2: buscar de progresso_flashcard
-        desbloqueado: desbloqueada,
-      ));
+        cardsVistos: vistos,
+        desbloqueado: desbloqueadaFlashcard,
+      );
+      novosItens.add(itemFlashcard);
 
-      // Nó de quiz (sempre após o flashcard da mesma fase)
+      // Quiz desbloqueia quando percentual de cards vistos >= minPercentual%
+      final percentualAtingido =
+          total > 0 && (vistos / total) >= (minPercentual / 100.0);
       novosItens.add(ItemTrilha(
         ehQuiz: true,
         fase: fase,
         totalCards: total,
-        cardsVistos: 0,
-        desbloqueado: desbloqueada, // Plano 3: checar percentual real
+        cardsVistos: vistos,
+        desbloqueado: desbloqueadaFlashcard && percentualAtingido,
       ));
     }
 

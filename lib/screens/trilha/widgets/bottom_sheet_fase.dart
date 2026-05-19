@@ -4,7 +4,8 @@ import '../../../controllers/trilha_controller.dart';
 
 class BottomSheetFase extends StatelessWidget {
   final ItemTrilha item;
-  const BottomSheetFase({super.key, required this.item});
+  final VoidCallback onIniciar;
+  const BottomSheetFase({super.key, required this.item, required this.onIniciar});
 
   @override
   Widget build(BuildContext context) {
@@ -15,7 +16,7 @@ class BottomSheetFase extends StatelessWidget {
         color: Color(0xFF1E1E3A),
         borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
       ),
-      padding: const EdgeInsets.fromLTRB(16, 12, 16, 24),
+      padding: EdgeInsets.fromLTRB(16, 12, 16, 24 + MediaQuery.of(context).padding.bottom),
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
@@ -73,7 +74,7 @@ class BottomSheetFase extends StatelessWidget {
               ),
               onPressed: () {
                 Navigator.pop(context);
-                // Plano 2: navegar para FlashcardScreen
+                onIniciar();
               },
               child: Text(
                 item.cardsVistos > 0 ? '▶ Continuar Flashcards' : '▶ Iniciar Flashcards',
