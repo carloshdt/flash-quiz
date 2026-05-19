@@ -4,6 +4,8 @@
 import 'package:sqflite/sqflite.dart';
 import 'package:path/path.dart';
 import 'migrations/migration_v1.dart';
+import 'migrations/migration_v2.dart';
+import 'migrations/migration_v3.dart';
 
 class DatabaseHelper {
   static final DatabaseHelper _instancia = DatabaseHelper._interno();
@@ -21,9 +23,15 @@ class DatabaseHelper {
     final caminho = join(await getDatabasesPath(), 'flashquiz.db');
     return openDatabase(
       caminho,
-      version: 1,
+      version: 3,
       onCreate: (db, version) async {
         await MigrationV1.executar(db);
+        await MigrationV2.executar(db);
+        await MigrationV3.executar(db);
+      },
+      onUpgrade: (db, oldVersion, newVersion) async {
+        if (oldVersion < 2) await MigrationV2.executar(db);
+        if (oldVersion < 3) await MigrationV3.executar(db);
       },
     );
   }

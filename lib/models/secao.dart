@@ -4,12 +4,14 @@ class Secao {
   final int temaId;
   final String nome;
   final int ordem;
+  final String icone;
 
   const Secao({
     required this.id,
     required this.temaId,
     required this.nome,
     required this.ordem,
+    this.icone = '📚',
   });
 
   factory Secao.fromMap(Map<String, dynamic> m) => Secao(
@@ -17,5 +19,6 @@ class Secao {
     temaId: m['tema_id'] as int,
     nome: m['nome'] as String,
     ordem: m['ordem'] as int,
+    icone: m['icone'] as String? ?? '📚',
   );
 }

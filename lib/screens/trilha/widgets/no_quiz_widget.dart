@@ -5,13 +5,21 @@ import '../../../controllers/trilha_controller.dart';
 class NoQuizWidget extends StatelessWidget {
   final ItemTrilha item;
   final VoidCallback onTap;
+  final double size;
 
-  const NoQuizWidget({super.key, required this.item, required this.onTap});
+  const NoQuizWidget({
+    super.key,
+    required this.item,
+    required this.onTap,
+    this.size = 68,
+  });
 
   @override
   Widget build(BuildContext context) {
     final desbloqueado = item.desbloqueado;
     final concluido = item.concluido;
+    final emojiSize = size * 0.38;
+    final badgeSize = size * 0.27;
 
     return GestureDetector(
       onTap: desbloqueado ? onTap : null,
@@ -21,19 +29,20 @@ class NoQuizWidget extends StatelessWidget {
           Opacity(
             opacity: desbloqueado ? 1.0 : 0.5,
             child: Container(
-              width: 46,
-              height: 46,
+              width: size,
+              height: size,
               decoration: BoxDecoration(
                 color: concluido ? const Color(0xFF00897B) : const Color(0xFF1A2A28),
-                borderRadius: BorderRadius.circular(10),
+                borderRadius: BorderRadius.circular(size * 0.2),
                 border: Border.all(
                   color: concluido ? const Color(0xFF4DB6AC) : const Color(0xFF2A3A38),
+                  width: 2,
                 ),
               ),
               child: Center(
                 child: desbloqueado
-                    ? const Text('📝', style: TextStyle(fontSize: 20))
-                    : const Icon(Icons.lock, color: Color(0xFF2A3A38), size: 18),
+                    ? Text('📝', style: TextStyle(fontSize: emojiSize))
+                    : Icon(Icons.lock, color: const Color(0xFF2A3A38), size: emojiSize),
               ),
             ),
           ),
@@ -42,14 +51,20 @@ class NoQuizWidget extends StatelessWidget {
               bottom: -2,
               right: -2,
               child: Container(
-                width: 16,
-                height: 16,
+                width: badgeSize,
+                height: badgeSize,
                 decoration: const BoxDecoration(
                   color: Color(0xFFF6C90E),
                   shape: BoxShape.circle,
                 ),
-                child: const Center(
-                  child: Text('✓', style: TextStyle(fontSize: 9, color: Colors.black, fontWeight: FontWeight.w900)),
+                child: Center(
+                  child: Text('✓',
+                    style: TextStyle(
+                      fontSize: badgeSize * 0.55,
+                      color: Colors.black,
+                      fontWeight: FontWeight.w900,
+                    ),
+                  ),
                 ),
               ),
             ),

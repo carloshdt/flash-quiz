@@ -9,6 +9,8 @@ class SecoesController extends ChangeNotifier {
   final MetricaService _metrica;
 
   List<Secao> secoes = [];
+  Map<int, double> progressoPorSecao = {};
+  double progressoGeral = 0.0;
   bool carregando = false;
 
   SecoesController({SecaoRepository? repo, MetricaService? metrica})
@@ -20,6 +22,13 @@ class SecoesController extends ChangeNotifier {
     notifyListeners();
 
     secoes = await _repo.getSecoesPorTema(temaId);
+    progressoPorSecao = await _repo.getProgressoPorTema(temaId);
+
+    final vals = progressoPorSecao.values;
+    progressoGeral = vals.isEmpty
+        ? 0.0
+        : vals.reduce((a, b) => a + b) / vals.length;
+
     await _metrica.temaSelecionado(temaId, nomeTema);
 
     carregando = false;
