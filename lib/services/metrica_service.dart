@@ -38,4 +38,23 @@ class MetricaService {
         tema: nomeTema,
         metadata: {'fase_id': faseId, 'nome_fase': nomeFase},
       ));
+
+  Future<void> cardVisto(int cardId, int faseId, String nomeTema) =>
+      _repo.registrar(Evento(
+        evento: 'card_visto',
+        tema: nomeTema,
+        metadata: {'card_id': cardId, 'fase_id': faseId},
+      ));
+
+  Future<void> cardAvaliado(int cardId, int nivelSrs, String nomeTema) =>
+      _repo.registrar(Evento(
+        evento: 'card_avaliado',
+        tema: nomeTema,
+        valor: nivelSrs == 0
+            ? 'dificil'
+            : nivelSrs == 1
+                ? 'medio'
+                : 'facil',
+        metadata: {'card_id': cardId, 'nivel_srs': nivelSrs},
+      ));
 }
