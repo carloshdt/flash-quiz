@@ -7,38 +7,81 @@
 
 ## 1. REGRAS DE NEGÓCIO
 
-### Quiz
-- Pontuação por questão: acertou rápido (< metade do tempo) = **10 pts** | acertou devagar = **7 pts** | errou ou estourou = **0 pts**
-- Estrelas por fase:
-  ```
-  0  – 69  → Reprovado (não desbloqueia próxima fase)
-  70 – 79  → ⭐
-  80 – 89  → ⭐⭐
-  90 – 100 → ⭐⭐⭐
-  ```
-- Nota mínima pra desbloquear próxima fase: **70**
-- Questões re-sorteadas a cada tentativa (não memoriza posição)
-- Saiu no meio = tentativa abandonada — registrar em qual questão saiu
+### Fluxo principal
+```
+HomeScreen
+  └─ tap tema → SecoesScreen (lista seções + progresso geral do tema)
+       └─ tap seção → TrilhaScreen (trilha ziguezague)
+            ├─ tap nó FASE → BottomSheetFase → FlashcardScreen
+            └─ tap nó QUIZ → BottomSheetQuiz → QuizScreen → QuizResultScreen
+```
+
+### Telas implementadas
+| Tela | Arquivo | Status |
+|------|---------|--------|
+| HomeScreen | `screens/home/home_screen.dart` | ✅ |
+| SecoesScreen | `screens/secoes/secoes_screen.dart` | ✅ |
+| TrilhaScreen | `screens/trilha/trilha_screen.dart` | ✅ |
+| FlashcardScreen | `screens/flashcard/flashcard_screen.dart` | ✅ |
+| QuizScreen | `screens/quiz/quiz_screen.dart` | ⏳ Plano 3 |
+| QuizResultScreen | `screens/quiz/quiz_result_screen.dart` | ⏳ Plano 3 |
+| PerfilScreen | `screens/perfil/perfil_screen.dart` | ⏳ Plano 4 |
+
+### Trilha — estados dos nós
+Cada fase gera 2 nós na trilha: **nó de flashcard** (círculo) e **nó de quiz** (quadrado).
+
+| Estado | Condição | Visual |
+|--------|----------|--------|
+| Bloqueado | Fase anterior não concluída | Cinza + cadeado |
+| Em andamento | Desbloqueado mas não concluído | Laranja + glow |
+| Concluído | Quiz com nota ≥ 70 | Roxo + ✓ verde |
+
+- Nó de quiz só desbloqueia após ≥ 60% dos cards da fase vistos (`flashcard_min_percentual_para_quiz` em `config`)
+- Primeira fase de cada seção sempre desbloqueada
 
 ### Flashcard / SRS
-- 3 níveis de avaliação após virar o card:
-  - **Difícil** → revisão no mesmo dia (intervalo 0)
-  - **Médio** → revisão em +1 dia
-  - **Fácil** → revisão em +3 dias
-- Sessão interrompida = recomeça do zero com cards re-sorteados
-- % mínimo de cards vistos pra liberar quiz da fase: **60%** (configurável em `config`)
+- Usuário vê pergunta → vira card → avalia com 3 botões: **Difícil / Médio / Fácil**
+- Botões só ativam após virar o card
+- Intervalos de revisão:
+  - Difícil → mesmo dia (0 dias)
+  - Médio → +1 dia
+  - Fácil → +3 dias
+- Sessão interrompida = recomeça do zero, cards re-sorteados
+- Sem contador de cards visível ao usuário durante a sessão
+- Progresso da fase = cards vistos únicos ÷ total cards da fase
 
-### Progressão
-- Usuário avança fase por fase dentro de cada seção
-- Desbloqueio: passar no quiz da fase anterior com nota ≥ 70
-- Pode refazer quiz quantas vezes quiser pra melhorar estrelas
-- Progresso de seção = SUM(melhor pontuação por fase) ÷ (total_fases × 100)
+### Quiz
+- Múltipla escolha, questões sorteadas aleatoriamente a cada tentativa
+- Sem feedback de acerto/erro durante o quiz — resultado só na tela final
+- Timer por questão: barra muda de roxo → vermelho conforme esgota
+- Transição entre questões: fade neutro ~0.3s
+- Saiu no meio = tentativa abandonada (registrar questão atual nas métricas)
+- Pode refazer ilimitadamente pra melhorar estrelas
+
+**Pontuação por questão:**
+- Acertou em < metade do tempo → **10 pts**
+- Acertou em ≥ metade do tempo → **7 pts**
+- Errou ou estourou o tempo → **0 pts**
+
+**Estrelas (nota 0–100):**
+```
+0  – 69  → Reprovado — não desbloqueia próxima fase
+70 – 79  → ⭐
+80 – 89  → ⭐⭐
+90 – 100 → ⭐⭐⭐
+```
+
+### Progressão de seção
+- % da seção = SUM(melhor pontuação por fase) ÷ (total_fases × 100)
+- Calculado em `SecaoRepository.getProgressoPorTema()` via `quiz_tentativas`
+- Antes do quiz ser implementado: todas as seções mostram 0% (esperado)
 
 ### Gamificação
 - XP por card: Fácil = 10 | Médio = 7 | Difícil = 3
 - XP por estrela de quiz: 50
-- Streak: incrementa se estudou hoje, reseta se passou um dia sem estudar
-- Todos os valores numéricos ficam na tabela `config` — nunca hardcodar
+- Streak: incrementa se estudou hoje, reseta se passou 1 dia sem estudar
+- Conquistas seed: `primeiro_tema`, `streak_7`, `cards_100`, `quiz_3estrelas`, `tema_completo`, `streak_30`
+- **Todos os valores numéricos ficam na tabela `config` — nunca hardcodar**
 
 ---
 
