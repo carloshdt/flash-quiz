@@ -10,9 +10,13 @@ import 'migrations/migration_v3.dart';
 class DatabaseHelper {
   static final DatabaseHelper _instancia = DatabaseHelper._interno();
   static Database? _db;
+  static String? _caminhoTeste;
 
   DatabaseHelper._interno();
   factory DatabaseHelper() => _instancia;
+
+  // Apenas para testes — define caminho alternativo (ex: inMemoryDatabasePath)
+  static void setCaminhoParaTeste(String caminho) => _caminhoTeste = caminho;
 
   Future<Database> get banco async {
     _db ??= await _inicializar();
@@ -20,7 +24,7 @@ class DatabaseHelper {
   }
 
   Future<Database> _inicializar() async {
-    final caminho = join(await getDatabasesPath(), 'flashquiz.db');
+    final caminho = _caminhoTeste ?? join(await getDatabasesPath(), 'flashquiz.db');
     return openDatabase(
       caminho,
       version: 3,

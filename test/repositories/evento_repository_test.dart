@@ -1,26 +1,24 @@
 // test/repositories/evento_repository_test.dart
 import 'package:flutter_test/flutter_test.dart';
-import 'package:path/path.dart';
 import 'package:sqflite_common_ffi/sqflite_ffi.dart';
 import 'package:flashquiz/db/database_helper.dart';
 import 'package:flashquiz/repositories/evento_repository.dart';
 import 'package:flashquiz/models/evento.dart';
 
-/// Apaga o arquivo do banco e reseta o singleton para garantir banco limpo
-Future<void> _resetarBanco() async {
-  await DatabaseHelper().fecharParaTeste();
-  final dir = await databaseFactoryFfi.getDatabasesPath();
-  await databaseFactoryFfi.deleteDatabase(join(dir, 'flashquiz.db'));
-}
-
 void main() {
   setUpAll(() {
     sqfliteFfiInit();
     databaseFactory = databaseFactoryFfi;
+    DatabaseHelper.setCaminhoParaTeste(inMemoryDatabasePath);
   });
 
-  setUp(_resetarBanco);
-  tearDown(_resetarBanco);
+  setUp(() async {
+    await DatabaseHelper().fecharParaTeste();
+  });
+
+  tearDown(() async {
+    await DatabaseHelper().fecharParaTeste();
+  });
 
   test('registrar salva evento no banco', () async {
     final repo = EventoRepository();

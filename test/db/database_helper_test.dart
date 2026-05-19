@@ -7,6 +7,11 @@ void main() {
   setUpAll(() {
     sqfliteFfiInit();
     databaseFactory = databaseFactoryFfi;
+    DatabaseHelper.setCaminhoParaTeste(inMemoryDatabasePath);
+  });
+
+  setUp(() async {
+    await DatabaseHelper().fecharParaTeste();
   });
 
   tearDown(() async {

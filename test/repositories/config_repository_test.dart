@@ -1,25 +1,23 @@
 // test/repositories/config_repository_test.dart
 import 'package:flutter_test/flutter_test.dart';
-import 'package:path/path.dart';
 import 'package:sqflite_common_ffi/sqflite_ffi.dart';
 import 'package:flashquiz/db/database_helper.dart';
 import 'package:flashquiz/repositories/config_repository.dart';
-
-/// Apaga o arquivo do banco e reseta o singleton para garantir banco limpo
-Future<void> _resetarBanco() async {
-  await DatabaseHelper().fecharParaTeste();
-  final dir = await databaseFactoryFfi.getDatabasesPath();
-  await databaseFactoryFfi.deleteDatabase(join(dir, 'flashquiz.db'));
-}
 
 void main() {
   setUpAll(() {
     sqfliteFfiInit();
     databaseFactory = databaseFactoryFfi;
+    DatabaseHelper.setCaminhoParaTeste(inMemoryDatabasePath);
   });
 
-  setUp(_resetarBanco);
-  tearDown(_resetarBanco);
+  setUp(() async {
+    await DatabaseHelper().fecharParaTeste();
+  });
+
+  tearDown(() async {
+    await DatabaseHelper().fecharParaTeste();
+  });
 
   test('getValorInt retorna valor padrão do seed', () async {
     final repo = ConfigRepository();
