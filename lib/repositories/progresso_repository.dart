@@ -1,6 +1,7 @@
 // lib/repositories/progresso_repository.dart
 import '../db/database_helper.dart';
 import '../models/card_model.dart';
+import '../models/progresso_flashcard.dart';
 
 class ProgressoRepository {
   final DatabaseHelper _db;
@@ -22,7 +23,7 @@ class ProgressoRepository {
         AND (
           pf.id IS NULL
           OR pf.total_visto = 0
-          OR pf.proxima_revisao <= ?
+          OR DATE(pf.proxima_revisao) <= ?
         )
       ORDER BY
         CASE WHEN pf.total_visto > 0 THEN 0 ELSE 1 END ASC,
@@ -49,9 +50,8 @@ class ProgressoRepository {
   // nivelSrs: 0=Difícil (revisão hoje), 1=Médio (+1 dia), 2=Fácil (+3 dias)
   Future<void> salvarProgresso(int cardId, int nivelSrs) async {
     final banco = await _db.banco;
-    final agora = DateTime.now();
     const intervaloDias = {0: 0, 1: 1, 2: 3};
-    final proxima = agora.add(Duration(days: intervaloDias[nivelSrs] ?? 0));
+    final proxima = DateTime.now().add(Duration(days: intervaloDias[nivelSrs] ?? 0));
 
     final existing = await banco.query(
       'progresso_flashcard',
@@ -60,25 +60,26 @@ class ProgressoRepository {
     );
 
     if (existing.isEmpty) {
-      await banco.insert('progresso_flashcard', {
-        'card_id': cardId,
-        'nivel_srs': nivelSrs,
-        'total_visto': 1,
-        'total_acerto': nivelSrs > 0 ? 1 : 0,
-        'proxima_revisao': proxima.toIso8601String(),
-        'atualizado_em': agora.toIso8601String(),
-      });
+      final novo = ProgressoFlashcard(
+        cardId: cardId,
+        nivelSrs: nivelSrs,
+        totalVisto: 1,
+        totalAcerto: nivelSrs > 0 ? 1 : 0,
+        proximaRevisao: proxima,
+      );
+      await banco.insert('progresso_flashcard', novo.toMap());
     } else {
-      final old = existing.first;
+      final old = ProgressoFlashcard.fromMap(existing.first);
+      final atualizado = ProgressoFlashcard(
+        cardId: cardId,
+        nivelSrs: nivelSrs,
+        totalVisto: old.totalVisto + 1,
+        totalAcerto: old.totalAcerto + (nivelSrs > 0 ? 1 : 0),
+        proximaRevisao: proxima,
+      );
       await banco.update(
         'progresso_flashcard',
-        {
-          'nivel_srs': nivelSrs,
-          'total_visto': (old['total_visto'] as int) + 1,
-          'total_acerto': (old['total_acerto'] as int) + (nivelSrs > 0 ? 1 : 0),
-          'proxima_revisao': proxima.toIso8601String(),
-          'atualizado_em': agora.toIso8601String(),
-        },
+        atualizado.toMap(),
         where: 'card_id = ?',
         whereArgs: [cardId],
       );
