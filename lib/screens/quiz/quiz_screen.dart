@@ -22,6 +22,7 @@ class QuizScreen extends StatefulWidget {
 
 class _QuizScreenState extends State<QuizScreen> with SingleTickerProviderStateMixin {
   bool _concluindo = false; // guard: evita concluir() duplo
+  bool _navegandoParaResultado = false; // guard: evita múltiplos addPostFrameCallback
 
   late AnimationController _fadeController;
   late Animation<double> _fadeAnim;
@@ -103,10 +104,13 @@ class _QuizScreenState extends State<QuizScreen> with SingleTickerProviderStateM
             }
 
             // Quando última questão foi respondida, navega para resultado
-            if (ctrl.quizConcluido) {
+            if (ctrl.quizConcluido && !_navegandoParaResultado) {
+              _navegandoParaResultado = true;
               WidgetsBinding.instance.addPostFrameCallback((_) {
                 if (mounted) _irParaResultado(ctrl);
               });
+              return const Center(child: CircularProgressIndicator(color: Color(0xFF7C4DFF)));
+            } else if (ctrl.quizConcluido) {
               return const Center(child: CircularProgressIndicator(color: Color(0xFF7C4DFF)));
             }
 
