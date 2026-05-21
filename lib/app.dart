@@ -4,10 +4,13 @@ import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 import 'controllers/flashcard_controller.dart';
 import 'controllers/home_controller.dart';
+import 'controllers/quiz_controller.dart';
 import 'controllers/secoes_controller.dart';
 import 'controllers/trilha_controller.dart';
 import 'screens/flashcard/flashcard_screen.dart';
 import 'screens/home/home_screen.dart';
+import 'screens/quiz/quiz_result_screen.dart';
+import 'screens/quiz/quiz_screen.dart';
 import 'screens/secoes/secoes_screen.dart';
 import 'screens/trilha/trilha_screen.dart';
 
@@ -51,6 +54,29 @@ final _router = GoRouter(
           nomeFase: nomeFase,
           nomeTema: nomeTema,
         );
+      },
+    ),
+    GoRoute(
+      path: '/quiz/:faseId',
+      builder: (_, state) {
+        final faseId = int.parse(state.pathParameters['faseId']!);
+        final nomeFase = state.uri.queryParameters['nomeFase'] ?? '';
+        final nomeTema = state.uri.queryParameters['nomeTema'] ?? '';
+        return ChangeNotifierProvider(
+          create: (_) => QuizController(),
+          child: QuizScreen(
+            faseId: faseId,
+            nomeFase: nomeFase,
+            nomeTema: nomeTema,
+          ),
+        );
+      },
+    ),
+    GoRoute(
+      path: '/quiz-resultado',
+      builder: (_, state) {
+        final resultado = state.extra as QuizResultado;
+        return QuizResultScreen(resultado: resultado);
       },
     ),
   ],

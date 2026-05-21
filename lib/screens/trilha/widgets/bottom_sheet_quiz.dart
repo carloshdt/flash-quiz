@@ -1,10 +1,12 @@
 // lib/screens/trilha/widgets/bottom_sheet_quiz.dart
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import '../../../controllers/trilha_controller.dart';
 
 class BottomSheetQuiz extends StatelessWidget {
   final ItemTrilha item;
-  const BottomSheetQuiz({super.key, required this.item});
+  final String nomeTema;
+  const BottomSheetQuiz({super.key, required this.item, required this.nomeTema});
 
   // Linha de regra do quiz
   Widget _regra(String icone, String texto) => Padding(
@@ -118,7 +120,11 @@ class BottomSheetQuiz extends StatelessWidget {
               ),
               onPressed: () {
                 Navigator.pop(context);
-                // Plano 3: navegar para QuizScreen
+                context.push(
+                  '/quiz/${item.fase.id}'
+                  '?nomeFase=${Uri.encodeComponent(item.fase.nome)}'
+                  '&nomeTema=${Uri.encodeComponent(nomeTema)}',
+                );
               },
               child: const Text(
                 '▶ Iniciar Quiz',

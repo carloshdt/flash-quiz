@@ -62,7 +62,7 @@ class _TrilhaScreenState extends State<TrilhaScreen> {
     showModalBottomSheet(
       context: context,
       backgroundColor: Colors.transparent,
-      builder: (_) => BottomSheetQuiz(item: item),
+      builder: (_) => BottomSheetQuiz(item: item, nomeTema: widget.nomeTema),
     );
   }
 
