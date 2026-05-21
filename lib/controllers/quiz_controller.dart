@@ -59,6 +59,7 @@ class QuizController extends ChangeNotifier {
   int? _respostaSelecionada;
   EstadoQuestao _estado = EstadoQuestao.aguardando;
   bool carregando = true;
+  bool _disposed = false;
 
   // Timer
   Timer? _timer;
@@ -173,7 +174,7 @@ class QuizController extends ChangeNotifier {
 
     // Auto-avança após 1s
     Future.delayed(const Duration(milliseconds: 1000), () {
-      _registrarRespostaEAvancar(indice: indice, timerEsgotou: false);
+      if (!_disposed) _registrarRespostaEAvancar(indice: indice, timerEsgotou: false);
     });
   }
 
@@ -240,7 +241,7 @@ class QuizController extends ChangeNotifier {
         totalPossivel > 0 ? (somaObtida / totalPossivel * 100).round() : 0;
     final estrelas = _calcularEstrelas(nota);
     final tempoTotal =
-        DateTime.now().difference(_inicioSessao!).inSeconds;
+        DateTime.now().difference(_inicioSessao ?? DateTime.now()).inSeconds;
 
     await _quizRepo.concluirTentativa(
       _tentativaId,
@@ -290,6 +291,7 @@ class QuizController extends ChangeNotifier {
 
   @override
   void dispose() {
+    _disposed = true;
     _timer?.cancel();
     super.dispose();
   }
