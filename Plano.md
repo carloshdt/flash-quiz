@@ -218,7 +218,8 @@ Fácil → Médio → Difícil → Simulado final
 - [x] Tela de seleção de seção (Geral ou seção específica)
 - [x] Timeline de fases por dificuldade
 - [x] Modo Flashcard com SRS
-- [ ] Quiz de validação de fase (nota 0-100, estrelas, tempo por questão)
+- [x] Quiz de validação de fase (nota 0-100, estrelas, tempo por questão)
+- [ ] Modos de estudo extras (Desafio Diário, Revisão Inteligente, Maratona)
 - [ ] Tela de perfil + estatísticas + streak
 - [ ] Integrar AdMob (banner + intersticial)
 - [ ] Montar conteúdo do 1º tema (CFC)
@@ -252,7 +253,8 @@ Fácil → Médio → Difícil → Simulado final
 |-------|-----------|--------|
 | Plano 1 | Arquitetura base (DB, models, repos, controllers, screens, trilha ziguezague) | ✅ Concluído |
 | Plano 2 | FlashcardScreen + SRS engine (3 níveis: Difícil/Médio/Fácil) | ✅ Concluído |
-| Plano 3 | QuizScreen + QuizResultScreen | ⏳ Próximo |
+| Plano 3 | QuizScreen + QuizResultScreen | ✅ Concluído |
+| Plano 3.5 | Modos de estudo extras (Desafio Diário, Revisão Inteligente, Maratona) | ⏳ Próximo |
 | Plano 4 | PerfilScreen + XP / streak / conquistas | ⏳ Pendente |
 | Plano 5 | Seed de conteúdo real CFC | ⏳ Pendente |
 | Plano 6 | AdMob + FCM + estrutura de paywall | ⏳ Pendente |
@@ -367,6 +369,21 @@ Substituir cards placeholder (5 genéricos por fase) por conteúdo real via migr
 - Compartilhamento de resultado do quiz
 - Temas customizados pelo usuário
 - Sincronização na nuvem (Firebase Firestore)
+
+### Decks criados pelo usuário (zero servidor)
+- Usuário cria temas/cards próprios no app — tudo local
+- Grande potencial de retenção; antecipar pra v1.x se métricas indicarem
+
+### IA: geração automática de cards (custo API)
+- Usuário cola texto/foto de apostila → IA (Claude) gera deck completo
+- Feature "uau" e diferencial forte, mas exige API paga → feature premium
+- Depende de decks do usuário existirem primeiro
+
+### Viral / social leve (zero servidor)
+- Compartilhar resultado do quiz como imagem bonita (share sheet nativo)
+- Desafiar amigo via link
+- Widget de streak na home screen do celular
+- Crescimento orgânico sem backend
 
 ---
 
