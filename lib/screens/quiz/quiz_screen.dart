@@ -3,6 +3,10 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 import '../../controllers/quiz_controller.dart';
+import 'widgets/quiz_timer_bar.dart';
+import 'widgets/quiz_questao_card.dart';
+import 'widgets/quiz_alternativas.dart';
+import 'widgets/tempo_esgotado_banner.dart';
 
 class QuizScreen extends StatefulWidget {
   final int faseId;
@@ -118,11 +122,6 @@ class _QuizScreenState extends State<QuizScreen> with SingleTickerProviderStateM
             final tempoEsgotado = ctrl.estado == EstadoQuestao.tempoEsgotado;
             final selecionada = ctrl.estado == EstadoQuestao.selecionada;
 
-            // Cor da barra de timer: roxo → vermelho quando < 30%
-            final corTimer = ctrl.percentualTempo < 0.30
-                ? const Color(0xFFFF3D00)
-                : const Color(0xFF7C4DFF);
-
             return FadeTransition(
               opacity: _fadeAnim,
               child: SafeArea(
@@ -153,148 +152,27 @@ class _QuizScreenState extends State<QuizScreen> with SingleTickerProviderStateM
                     ),
 
                     // Barra de timer + número
-                    Padding(
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 16, vertical: 8),
-                      child: Row(
-                        children: [
-                          Expanded(
-                            child: ClipRRect(
-                              borderRadius: BorderRadius.circular(4),
-                              child: LinearProgressIndicator(
-                                value: ctrl.percentualTempo,
-                                backgroundColor: const Color(0xFF1A1A3A),
-                                valueColor:
-                                    AlwaysStoppedAnimation<Color>(corTimer),
-                                minHeight: 8,
-                              ),
-                            ),
-                          ),
-                          const SizedBox(width: 10),
-                          SizedBox(
-                            width: 32,
-                            child: Text(
-                              '${ctrl.segundosRestantes}',
-                              style: TextStyle(
-                                fontSize: 14,
-                                fontWeight: FontWeight.w800,
-                                color: corTimer,
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
+                    QuizTimerBar(
+                      percentual: ctrl.percentualTempo,
+                      segundos: ctrl.segundosRestantes,
                     ),
 
                     // Card da pergunta
-                    Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 16),
-                      child: Container(
-                        width: double.infinity,
-                        padding: const EdgeInsets.all(16),
-                        decoration: BoxDecoration(
-                          color: const Color(0xFF1C2448),
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                        child: Text(
-                          card.pergunta,
-                          style: const TextStyle(
-                              fontSize: 15, color: Colors.white, height: 1.5),
-                        ),
-                      ),
-                    ),
+                    QuizQuestaoCard(pergunta: card.pergunta),
 
                     const SizedBox(height: 12),
 
                     // Timer esgotado: mensagem
                     if (tempoEsgotado)
-                      GestureDetector(
-                        onTap: ctrl.avancarAposTempoEsgotado,
-                        child: Container(
-                          margin: const EdgeInsets.symmetric(horizontal: 16),
-                          padding: const EdgeInsets.symmetric(vertical: 10),
-                          width: double.infinity,
-                          decoration: BoxDecoration(
-                            color: const Color(0xFF3A1A1A),
-                            borderRadius: BorderRadius.circular(8),
-                            border: Border.all(color: const Color(0xFFFF5252)),
-                          ),
-                          child: const Text(
-                            'Tempo esgotado — toque para continuar',
-                            textAlign: TextAlign.center,
-                            style: TextStyle(
-                                color: Color(0xFFFF5252),
-                                fontWeight: FontWeight.w700,
-                                fontSize: 13),
-                          ),
-                        ),
-                      ),
+                      TempoEsgotadoBanner(onTap: ctrl.avancarAposTempoEsgotado),
 
                     // Alternativas
                     Expanded(
-                      child: ListView.builder(
-                        padding: const EdgeInsets.symmetric(
-                            horizontal: 16, vertical: 8),
-                        itemCount: ctrl.alternativasAtual.length,
-                        itemBuilder: (_, i) {
-                          final letras = ['A', 'B', 'C', 'D'];
-                          final selecionadaEsta =
-                              ctrl.respostaSelecionada == i;
-                          final desabilitada = tempoEsgotado || selecionada;
-
-                          return GestureDetector(
-                            onTap: desabilitada
-                                ? null
-                                : () => ctrl.selecionarResposta(i),
-                            child: AnimatedContainer(
-                              duration: const Duration(milliseconds: 200),
-                              margin: const EdgeInsets.only(bottom: 8),
-                              padding: const EdgeInsets.symmetric(
-                                  horizontal: 12, vertical: 10),
-                              decoration: BoxDecoration(
-                                color: selecionadaEsta
-                                    ? const Color(0xFF7C4DFF).withValues(alpha: 0.15)
-                                    : Colors.transparent,
-                                borderRadius: BorderRadius.circular(10),
-                                border: Border.all(
-                                  color: selecionadaEsta
-                                      ? const Color(0xFF7C4DFF)
-                                      : const Color(0xFF2A2A5A),
-                                  width: selecionadaEsta ? 2 : 1.5,
-                                ),
-                              ),
-                              child: Row(
-                                children: [
-                                  Text(
-                                    letras[i],
-                                    style: TextStyle(
-                                      fontSize: 12,
-                                      fontWeight: FontWeight.w700,
-                                      color: selecionadaEsta
-                                          ? const Color(0xFF7C4DFF)
-                                          : const Color(0xFF90CAF9),
-                                    ),
-                                  ),
-                                  const SizedBox(width: 10),
-                                  Expanded(
-                                    child: Text(
-                                      ctrl.alternativasAtual[i],
-                                      style: TextStyle(
-                                        fontSize: 13,
-                                        color: selecionadaEsta
-                                            ? Colors.white
-                                            : const Color(0xFFCCCCCC),
-                                        fontWeight: selecionadaEsta
-                                            ? FontWeight.w600
-                                            : FontWeight.normal,
-                                      ),
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                          );
-                        },
+                      child: QuizAlternativas(
+                        alternativas: ctrl.alternativasAtual,
+                        respostaSelecionada: ctrl.respostaSelecionada,
+                        desabilitada: tempoEsgotado || selecionada,
+                        onSelecionar: ctrl.selecionarResposta,
                       ),
                     ),
                   ],
