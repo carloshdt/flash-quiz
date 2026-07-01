@@ -6,6 +6,7 @@ import 'package:path/path.dart';
 import 'migrations/migration_v1.dart';
 import 'migrations/migration_v2.dart';
 import 'migrations/migration_v3.dart';
+import 'migrations/migration_v4.dart';
 
 class DatabaseHelper {
   static final DatabaseHelper _instancia = DatabaseHelper._interno();
@@ -27,15 +28,17 @@ class DatabaseHelper {
     final caminho = _caminhoTeste ?? join(await getDatabasesPath(), 'flashquiz.db');
     return openDatabase(
       caminho,
-      version: 3,
+      version: 4,
       onCreate: (db, version) async {
         await MigrationV1.executar(db);
         await MigrationV2.executar(db);
         await MigrationV3.executar(db);
+        await MigrationV4.executar(db);
       },
       onUpgrade: (db, oldVersion, newVersion) async {
         if (oldVersion < 2) await MigrationV2.executar(db);
         if (oldVersion < 3) await MigrationV3.executar(db);
+        if (oldVersion < 4) await MigrationV4.executar(db);
       },
     );
   }
