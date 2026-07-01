@@ -81,9 +81,9 @@ class _TrilhaScreenState extends State<TrilhaScreen> {
     final nodeSizeQuiz = rowHeight * 0.38;
 
     return Scaffold(
-      backgroundColor: const Color(0xFF12122A),
+      backgroundColor: const Color(0xFF151C35),
       appBar: AppBar(
-        backgroundColor: const Color(0xFF1565C0),
+        backgroundColor: const Color(0xFF1A2F6E),
         elevation: 0,
         title: Column(
           crossAxisAlignment: CrossAxisAlignment.start,

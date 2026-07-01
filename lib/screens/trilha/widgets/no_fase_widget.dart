@@ -18,11 +18,11 @@ class NoFaseWidget extends StatelessWidget {
   Widget build(BuildContext context) {
     Color cor;
     if (!item.desbloqueado) {
-      cor = const Color(0xFF2A2A45);
+      cor = const Color(0xFF252E55);
     } else if (item.concluido) {
       cor = const Color(0xFF7C4DFF);
     } else {
-      cor = const Color(0xFFFF6F00);
+      cor = const Color(0xFFFF8C00);
     }
 
     final iconSize = size * 0.37;
@@ -45,7 +45,7 @@ class NoFaseWidget extends StatelessWidget {
               ),
               boxShadow: item.emAndamento
                   ? [BoxShadow(
-                      color: const Color(0xFFFF6F00).withValues(alpha: 0.5),
+                      color: const Color(0xFFFF8C00).withValues(alpha: 0.5),
                       blurRadius: 16,
                       spreadRadius: 3,
                     )]

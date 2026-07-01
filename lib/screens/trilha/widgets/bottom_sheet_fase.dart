@@ -13,7 +13,7 @@ class BottomSheetFase extends StatelessWidget {
 
     return Container(
       decoration: const BoxDecoration(
-        color: Color(0xFF1E1E3A),
+        color: Color(0xFF1C2040),
         borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
       ),
       padding: EdgeInsets.fromLTRB(16, 12, 16, 24 + MediaQuery.of(context).padding.bottom),
@@ -54,7 +54,7 @@ class BottomSheetFase extends StatelessWidget {
                 borderRadius: BorderRadius.circular(4),
                 child: LinearProgressIndicator(
                   value: item.percentualVisto.clamp(0.0, 1.0),
-                  backgroundColor: const Color(0xFF1A237E),
+                  backgroundColor: const Color(0xFF1A2060),
                   valueColor: const AlwaysStoppedAnimation(Color(0xFF7C4DFF)),
                   minHeight: 6,
                 ),

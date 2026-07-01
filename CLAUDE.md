@@ -53,10 +53,16 @@ Cada fase gera 2 nós na trilha: **nó de flashcard** (círculo) e **nó de quiz
 ### Quiz
 - Múltipla escolha, questões sorteadas aleatoriamente a cada tentativa
 - Sem feedback de acerto/erro durante o quiz — resultado só na tela final
-- Timer por questão: barra muda de roxo → vermelho conforme esgota
-- Transição entre questões: fade neutro ~0.3s
-- Saiu no meio = tentativa abandonada (registrar questão atual nas métricas)
+- Timer por questão: barra muda de roxo → vermelho quando resta < 30% do tempo; número de segundos ao lado
+- Resposta selecionada → highlight roxo, timer para → ~1s → próxima questão (fade 0.3s)
+- Timer estourado → opções desabilitam, exibe "Tempo esgotado" → usuário toca pra avançar (0 pts)
+- Saiu no meio → diálogo de confirmação ("tentativa será registrada como abandonada") → Sim/Não
 - Pode refazer ilimitadamente pra melhorar estrelas
+
+**QuizResultScreen:**
+- Score grande centralizado (sem breakdown por questão)
+- Aprovado: estrelas + texto verde "Próxima fase desbloqueada!" + botões Continuar / Refazer
+- Reprovado: estrelas apagadas + texto vermelho "Mínimo 70 para avançar" + botões Tentar novamente / Voltar para trilha
 
 **Pontuação por questão:**
 - Acertou em < metade do tempo → **10 pts**
@@ -133,13 +139,21 @@ UI (screens/widgets)  →  Controllers (ChangeNotifier)  →  Repositories → S
 - Todo schema novo = migration versionada (`migration_vN.dart`) — nunca alterar migration anterior
 - Toda tabela nova: campos `criado_em` e `atualizado_em`
 
-**Cores dark theme:**
+**Design system:** `lib/theme/app_theme.dart` — usar `AppColors.*` em vez de hex direto.
+
+**Cores dark theme (AppColors):**
 ```dart
-Color(0xFF12122A)  // fundo
-Color(0xFF0F3460)  // cards/containers
-Color(0xFF7C4DFF)  // roxo primário (ação, progresso)
-Color(0xFFFF6F00)  // laranja (streak, nó atual)
-Color(0xFF00897B)  // teal (quiz concluído)
-Color(0xFF90CAF9)  // azul claro (texto secundário)
-Color(0xFF1565C0)  // azul escuro (header)
+AppColors.background  // Color(0xFF151C35) — fundo navy
+AppColors.surface     // Color(0xFF1C2448) — cards/containers
+AppColors.headerBg    // Color(0xFF1A2F6E) — header AppBar
+AppColors.sheetBg     // Color(0xFF1C2040) — bottom sheets
+AppColors.purple      // Color(0xFF7C4DFF) — roxo primário
+AppColors.orange      // Color(0xFFFF8C00) — laranja (streak, nó atual)
+AppColors.gold        // Color(0xFFFFD600) — dourado (XP badge)
+AppColors.teal        // Color(0xFF00897B) — teal (quiz concluído)
+AppColors.textSecondary // Color(0xFF90CAF9) — texto secundário
 ```
+
+**Font:** Nunito (google_fonts) aplicado app-wide via ThemeData.textTheme.
+**Acento por tema:** `AppColors.accentFor(tema.id)` — cicla palette de 8 cores.
+**Cards de tema:** emoji grande, sem caixinha, border `accentFor(id).withValues(alpha: 0.22)`.

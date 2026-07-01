@@ -5,6 +5,7 @@ import 'package:provider/provider.dart';
 import '../../controllers/secoes_controller.dart';
 import '../../models/secao.dart';
 import '../../services/metrica_service.dart';
+import '../../theme/app_theme.dart';
 
 class SecoesScreen extends StatefulWidget {
   final int temaId;
@@ -39,14 +40,14 @@ class _SecoesScreenState extends State<SecoesScreen> {
     final ctrl = context.watch<SecoesController>();
 
     return Scaffold(
-      backgroundColor: const Color(0xFF12122A),
+      backgroundColor: AppColors.background,
       appBar: AppBar(
-        backgroundColor: const Color(0xFF12122A),
+        backgroundColor: AppColors.background,
         elevation: 0,
         title: Text(widget.nomeTema, style: const TextStyle(fontWeight: FontWeight.w800)),
       ),
       body: ctrl.carregando
-          ? const Center(child: CircularProgressIndicator(color: Color(0xFF7C4DFF)))
+          ? const Center(child: CircularProgressIndicator(color: AppColors.purple))
           : ListView(
               padding: const EdgeInsets.all(16),
               children: [
@@ -54,8 +55,9 @@ class _SecoesScreenState extends State<SecoesScreen> {
                 Container(
                   padding: const EdgeInsets.all(12),
                   decoration: BoxDecoration(
-                    color: const Color(0xFF0F3460),
-                    borderRadius: BorderRadius.circular(10),
+                    color: Colors.white.withValues(alpha: 0.06),
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(color: Colors.white.withValues(alpha: 0.08)),
                   ),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
@@ -64,10 +66,10 @@ class _SecoesScreenState extends State<SecoesScreen> {
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
                           const Text('Progresso geral',
-                              style: TextStyle(fontSize: 11, color: Color(0xFF90CAF9))),
+                              style: TextStyle(fontSize: 11, color: AppColors.textSecondary)),
                           Text(
                             '${(ctrl.progressoGeral * 100).round()}% concluído',
-                            style: const TextStyle(fontSize: 11, color: Color(0xFF90CAF9)),
+                            style: const TextStyle(fontSize: 11, color: AppColors.textSecondary),
                           ),
                         ],
                       ),
@@ -76,8 +78,8 @@ class _SecoesScreenState extends State<SecoesScreen> {
                         borderRadius: BorderRadius.circular(4),
                         child: LinearProgressIndicator(
                           value: ctrl.progressoGeral,
-                          backgroundColor: const Color(0xFF1A237E),
-                          valueColor: const AlwaysStoppedAnimation(Color(0xFF7C4DFF)),
+                          backgroundColor: Colors.white.withValues(alpha: 0.08),
+                          valueColor: const AlwaysStoppedAnimation<Color>(AppColors.purple),
                           minHeight: 6,
                         ),
                       ),
@@ -85,9 +87,9 @@ class _SecoesScreenState extends State<SecoesScreen> {
                   ),
                 ),
                 const SizedBox(height: 16),
-                const Text(
+                Text(
                   'Escolha uma seção',
-                  style: TextStyle(fontSize: 13, color: Color(0xFF888888)),
+                  style: TextStyle(fontSize: 13, color: Colors.white.withValues(alpha: 0.4)),
                 ),
                 const SizedBox(height: 8),
                 ...ctrl.secoes.map((secao) => Padding(
@@ -125,10 +127,14 @@ class _SecaoCard extends StatelessWidget {
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
         decoration: BoxDecoration(
-          color: destaque ? const Color(0xFF1565C0) : const Color(0xFF0F3460),
-          borderRadius: BorderRadius.circular(10),
+          color: destaque
+              ? AppColors.headerBg.withValues(alpha: 0.8)
+              : Colors.white.withValues(alpha: 0.055),
+          borderRadius: BorderRadius.circular(14),
           border: Border.all(
-            color: destaque ? const Color(0xFF1976D2) : const Color(0xFF1A237E),
+            color: destaque
+                ? AppColors.purple.withValues(alpha: 0.4)
+                : Colors.white.withValues(alpha: 0.08),
           ),
         ),
         child: Column(
@@ -145,7 +151,7 @@ class _SecaoCard extends StatelessWidget {
                         fontWeight: FontWeight.w700, color: Colors.white, fontSize: 13),
                   ),
                 ),
-                const Icon(Icons.chevron_right, color: Color(0xFF7C4DFF)),
+                const Icon(Icons.chevron_right, color: AppColors.purple),
               ],
             ),
             const SizedBox(height: 8),
@@ -153,15 +159,15 @@ class _SecaoCard extends StatelessWidget {
               borderRadius: BorderRadius.circular(3),
               child: LinearProgressIndicator(
                 value: percentual,
-                backgroundColor: const Color(0xFF1A237E),
-                valueColor: const AlwaysStoppedAnimation(Color(0xFF7C4DFF)),
+                backgroundColor: Colors.white.withValues(alpha: 0.08),
+                valueColor: const AlwaysStoppedAnimation<Color>(AppColors.purple),
                 minHeight: 4,
               ),
             ),
             const SizedBox(height: 2),
             Text(
               '${(percentual * 100).round()}%',
-              style: const TextStyle(fontSize: 9, color: Color(0xFF90CAF9)),
+              style: const TextStyle(fontSize: 9, color: AppColors.textSecondary),
             ),
           ],
         ),

@@ -341,6 +341,35 @@ Substituir cards placeholder (5 genéricos por fase) por conteúdo real via migr
 
 ---
 
+## 💡 Ideias Futuras (pós-métricas)
+
+> Não implementar agora. Decisões baseadas em dados reais de uso após launch.
+
+### Monetização
+- **Freemium por tema** — 1-2 temas grátis, demais ~R$4,99 cada
+- **Remove ads** — R$4,99 ou R$9,99 (compra única)
+- **Assinatura** — R$9,99/mês ou R$49,99/ano
+
+### Limite de retentativa de quiz (freemium)
+- Usuário free: X tentativas por dia por quiz (ex: 1)
+- Usuário premium: ilimitado
+- Variações: cooldown de X horas, ou N tentativas free lifetime por quiz
+- Config já prevista: `quiz_max_tentativas_free_por_dia` na tabela `config`
+- Métrica-chave: quantas vezes usuário tenta refazer o mesmo quiz (coletar antes de decidir)
+
+### Rewarded ads
+- Assistir anúncio = ganhar 1 tentativa extra de quiz
+- Alternativa menos agressiva ao paywall, mantém engajamento
+
+### Outras ideias
+- Ranking semanal por tema
+- Simulado final por tema completo
+- Compartilhamento de resultado do quiz
+- Temas customizados pelo usuário
+- Sincronização na nuvem (Firebase Firestore)
+
+---
+
 ## 📝 Notas Gerais
 - Complexidade de código nunca é problema — Claude Code resolve
 - Animações simples são ok — evitar animações elaboradas

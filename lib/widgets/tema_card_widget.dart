@@ -1,6 +1,7 @@
 // lib/widgets/tema_card_widget.dart
 import 'package:flutter/material.dart';
 import '../models/tema.dart';
+import '../theme/app_theme.dart';
 
 class TemaCardWidget extends StatelessWidget {
   final Tema tema;
@@ -11,49 +12,46 @@ class TemaCardWidget extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final bloqueado = !tema.desbloqueado;
+    final accent = AppColors.accentFor(tema.id);
 
     return GestureDetector(
       onTap: bloqueado ? null : onTap,
       child: Opacity(
-        opacity: bloqueado ? 0.5 : 1.0,
+        opacity: bloqueado ? 0.45 : 1.0,
         child: Container(
-          padding: const EdgeInsets.all(12),
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
           decoration: BoxDecoration(
-            color: const Color(0xFF0F3460),
-            borderRadius: BorderRadius.circular(12),
-            border: Border.all(color: const Color(0xFF1A237E)),
+            color: Colors.white.withValues(alpha: 0.055),
+            borderRadius: BorderRadius.circular(20),
+            border: Border.all(
+              color: accent.withValues(alpha: 0.22),
+              width: 1.5,
+            ),
           ),
           child: Row(
             children: [
-              Container(
-                width: 40,
-                height: 40,
-                decoration: BoxDecoration(
-                  color: const Color(0xFF1565C0),
-                  borderRadius: BorderRadius.circular(10),
-                ),
-                child: Center(child: Text(tema.icone, style: const TextStyle(fontSize: 20))),
-              ),
-              const SizedBox(width: 12),
+              Text(tema.icone, style: const TextStyle(fontSize: 26)),
+              const SizedBox(width: 13),
               Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(tema.nome,
-                        style: const TextStyle(fontWeight: FontWeight.w700, color: Colors.white)),
-                    Text(
-                      bloqueado ? 'Em breve' : 'Toque para estudar',
-                      style: TextStyle(
-                        fontSize: 11,
-                        color: bloqueado ? const Color(0xFF666688) : const Color(0xFF90CAF9),
-                      ),
-                    ),
-                  ],
+                child: Text(
+                  tema.nome,
+                  style: const TextStyle(
+                    fontSize: 15,
+                    fontWeight: FontWeight.w800,
+                    color: Colors.white,
+                  ),
                 ),
               ),
               bloqueado
-                  ? const Icon(Icons.lock_outline, color: Color(0xFF444466), size: 18)
-                  : const Icon(Icons.chevron_right, color: Color(0xFF7C4DFF)),
+                  ? Icon(Icons.lock_outline, color: Colors.white.withValues(alpha: 0.25), size: 16)
+                  : Text(
+                      '›',
+                      style: TextStyle(
+                        fontSize: 22,
+                        color: Colors.white.withValues(alpha: 0.3),
+                        height: 1,
+                      ),
+                    ),
             ],
           ),
         ),

@@ -56,7 +56,7 @@ class _QuizScreenState extends State<QuizScreen> with SingleTickerProviderStateM
     final confirmar = await showDialog<bool>(
       context: context,
       builder: (_) => AlertDialog(
-        backgroundColor: const Color(0xFF1E1E3A),
+        backgroundColor: const Color(0xFF1C2040),
         title: const Text('Sair do quiz?',
             style: TextStyle(color: Colors.white, fontSize: 16)),
         content: const Text(
@@ -96,7 +96,7 @@ class _QuizScreenState extends State<QuizScreen> with SingleTickerProviderStateM
       canPop: false,
       onPopInvokedWithResult: (_, __) => _onWillPop(),
       child: Scaffold(
-        backgroundColor: const Color(0xFF12122A),
+        backgroundColor: const Color(0xFF151C35),
         body: Consumer<QuizController>(
           builder: (_, ctrl, __) {
             if (ctrl.carregando) {
@@ -193,7 +193,7 @@ class _QuizScreenState extends State<QuizScreen> with SingleTickerProviderStateM
                         width: double.infinity,
                         padding: const EdgeInsets.all(16),
                         decoration: BoxDecoration(
-                          color: const Color(0xFF0F3460),
+                          color: const Color(0xFF1C2448),
                           borderRadius: BorderRadius.circular(12),
                         ),
                         child: Text(

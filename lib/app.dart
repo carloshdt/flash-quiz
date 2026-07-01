@@ -1,6 +1,7 @@
 // lib/app.dart
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 import 'controllers/flashcard_controller.dart';
 import 'controllers/home_controller.dart';
@@ -101,6 +102,8 @@ class FlashQuizApp extends StatelessWidget {
             seedColor: const Color(0xFF7C4DFF),
             brightness: Brightness.dark,
           ),
+          scaffoldBackgroundColor: const Color(0xFF151C35),
+          textTheme: GoogleFonts.nunitoTextTheme(ThemeData.dark().textTheme),
           useMaterial3: true,
         ),
         routerConfig: _router,

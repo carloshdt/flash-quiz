@@ -28,7 +28,7 @@ class BottomSheetQuiz extends StatelessWidget {
 
     return Container(
       decoration: const BoxDecoration(
-        color: Color(0xFF1E1E3A),
+        color: Color(0xFF1C2040),
         borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
       ),
       padding: EdgeInsets.fromLTRB(16, 12, 16, 24 + MediaQuery.of(context).padding.bottom),
@@ -77,7 +77,7 @@ class BottomSheetQuiz extends StatelessWidget {
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
             decoration: BoxDecoration(
-              color: const Color(0xFF0F3460),
+              color: const Color(0xFF1C2448),
               borderRadius: BorderRadius.circular(8),
             ),
             child: Row(

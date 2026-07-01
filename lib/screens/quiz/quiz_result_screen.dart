@@ -15,7 +15,7 @@ class QuizResultScreen extends StatelessWidget {
     final estrelas = resultado.estrelas;
 
     return Scaffold(
-      backgroundColor: const Color(0xFF12122A),
+      backgroundColor: const Color(0xFF151C35),
       body: SafeArea(
         child: Column(
           children: [
@@ -34,7 +34,7 @@ class QuizResultScreen extends StatelessWidget {
                           fontSize: 32,
                           color: i < estrelas
                               ? const Color(0xFFF6C90E)
-                              : const Color(0xFF2A2A5A),
+                              : const Color(0xFF2A3060),
                         ),
                       );
                     }),
@@ -67,7 +67,7 @@ class QuizResultScreen extends StatelessWidget {
                     width: 48,
                     height: 2,
                     decoration: BoxDecoration(
-                      color: const Color(0xFF2A2A5A),
+                      color: const Color(0xFF2A3060),
                       borderRadius: BorderRadius.circular(1),
                     ),
                   ),
@@ -126,7 +126,7 @@ class QuizResultScreen extends StatelessWidget {
                     width: double.infinity,
                     child: OutlinedButton(
                       style: OutlinedButton.styleFrom(
-                        side: const BorderSide(color: Color(0xFF2A2A5A)),
+                        side: const BorderSide(color: Color(0xFF2A3060)),
                         padding: const EdgeInsets.symmetric(vertical: 13),
                         shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(12)),

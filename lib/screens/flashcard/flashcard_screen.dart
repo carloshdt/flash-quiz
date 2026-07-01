@@ -70,9 +70,9 @@ class _FlashcardScreenState extends State<FlashcardScreen>
     final ctrl = context.watch<FlashcardController>();
 
     return Scaffold(
-      backgroundColor: const Color(0xFF12122A),
+      backgroundColor: const Color(0xFF151C35),
       appBar: AppBar(
-        backgroundColor: const Color(0xFF12122A),
+        backgroundColor: const Color(0xFF151C35),
         elevation: 0,
         leading: IconButton(
           icon: const Icon(Icons.close, color: Colors.white),
@@ -121,7 +121,7 @@ class _FlashcardScreenState extends State<FlashcardScreen>
                         ? _CardFace(
                             texto: card.pergunta,
                             label: 'PERGUNTA',
-                            cor: const Color(0xFF1E1E3A),
+                            cor: const Color(0xFF1C2040),
                             corBorda: const Color(0xFF3A3A5A),
                           )
                         : Transform(
