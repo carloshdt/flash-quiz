@@ -3,11 +3,14 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
+import 'controllers/desafio_controller.dart';
 import 'controllers/flashcard_controller.dart';
 import 'controllers/home_controller.dart';
 import 'controllers/quiz_controller.dart';
 import 'controllers/secoes_controller.dart';
 import 'controllers/trilha_controller.dart';
+import 'screens/desafio/desafio_result_screen.dart';
+import 'screens/desafio/desafio_screen.dart';
 import 'screens/flashcard/flashcard_screen.dart';
 import 'screens/home/home_screen.dart';
 import 'screens/quiz/quiz_result_screen.dart';
@@ -78,6 +81,24 @@ final _router = GoRouter(
       builder: (_, state) {
         final resultado = state.extra as QuizResultado;
         return QuizResultScreen(resultado: resultado);
+      },
+    ),
+    GoRoute(
+      path: '/desafio/:temaId',
+      builder: (_, state) {
+        final temaId = int.parse(state.pathParameters['temaId']!);
+        final nomeTema = state.uri.queryParameters['nomeTema'] ?? '';
+        return ChangeNotifierProvider(
+          create: (_) => DesafioController(),
+          child: DesafioScreen(temaId: temaId, nomeTema: nomeTema),
+        );
+      },
+    ),
+    GoRoute(
+      path: '/desafio-resultado',
+      builder: (_, state) {
+        final resultado = state.extra as DesafioResultado;
+        return DesafioResultScreen(resultado: resultado);
       },
     ),
   ],
