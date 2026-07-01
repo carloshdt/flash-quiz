@@ -35,6 +35,18 @@ class _SecoesScreenState extends State<SecoesScreen> {
     );
   }
 
+  void _abrirModo(BuildContext context, String rota) {
+    final ctrl = context.read<SecoesController>();
+    context
+        .push('$rota/${widget.temaId}?nomeTema=${Uri.encodeComponent(widget.nomeTema)}')
+        .then((_) {
+      // Recarrega ao voltar (atualiza "feito hoje", vencidos e recorde)
+      if (mounted) {
+        ctrl.carregar(widget.temaId, widget.nomeTema);
+      }
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     final ctrl = context.watch<SecoesController>();
@@ -85,6 +97,44 @@ class _SecoesScreenState extends State<SecoesScreen> {
                       ),
                     ],
                   ),
+                ),
+                const SizedBox(height: 16),
+                Text(
+                  'Modos de estudo',
+                  style: TextStyle(fontSize: 13, color: Colors.white.withValues(alpha: 0.4)),
+                ),
+                const SizedBox(height: 8),
+                _ModoCard(
+                  emoji: '⚡',
+                  titulo: 'Desafio Diário',
+                  subtitulo: ctrl.notaDesafioHoje != null
+                      ? '✓ Feito hoje · ${ctrl.notaDesafioHoje} pontos'
+                      : '5 questões · uma vez por dia',
+                  cor: AppColors.orange,
+                  desabilitado: ctrl.notaDesafioHoje != null,
+                  onTap: () => _abrirModo(context, '/desafio'),
+                ),
+                const SizedBox(height: 8),
+                _ModoCard(
+                  emoji: '🧠',
+                  titulo: 'Revisão Inteligente',
+                  subtitulo: ctrl.cardsVencidos > 0
+                      ? '${ctrl.cardsVencidos} cards para revisar'
+                      : 'Tudo em dia',
+                  cor: AppColors.purple,
+                  desabilitado: false,
+                  onTap: () => _abrirModo(context, '/revisao'),
+                ),
+                const SizedBox(height: 8),
+                _ModoCard(
+                  emoji: '🏃',
+                  titulo: 'Maratona',
+                  subtitulo: ctrl.recordeMaratona > 0
+                      ? 'Recorde: ${ctrl.recordeMaratona} acertos'
+                      : 'Responda até errar 3',
+                  cor: AppColors.teal,
+                  desabilitado: false,
+                  onTap: () => _abrirModo(context, '/maratona'),
                 ),
                 const SizedBox(height: 16),
                 Text(
@@ -170,6 +220,66 @@ class _SecaoCard extends StatelessWidget {
               style: const TextStyle(fontSize: 9, color: AppColors.textSecondary),
             ),
           ],
+        ),
+      ),
+    );
+  }
+}
+
+class _ModoCard extends StatelessWidget {
+  final String emoji;
+  final String titulo;
+  final String subtitulo;
+  final Color cor;
+  final bool desabilitado;
+  final VoidCallback onTap;
+
+  const _ModoCard({
+    required this.emoji,
+    required this.titulo,
+    required this.subtitulo,
+    required this.cor,
+    required this.desabilitado,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Opacity(
+      opacity: desabilitado ? 0.55 : 1.0,
+      child: GestureDetector(
+        onTap: desabilitado ? null : onTap,
+        child: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+          decoration: BoxDecoration(
+            color: Colors.white.withValues(alpha: 0.055),
+            borderRadius: BorderRadius.circular(14),
+            border: Border.all(color: cor.withValues(alpha: 0.35)),
+          ),
+          child: Row(
+            children: [
+              Text(emoji, style: const TextStyle(fontSize: 20)),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      titulo,
+                      style: const TextStyle(
+                          fontWeight: FontWeight.w700, color: Colors.white, fontSize: 13),
+                    ),
+                    const SizedBox(height: 2),
+                    Text(
+                      subtitulo,
+                      style: TextStyle(fontSize: 11, color: cor),
+                    ),
+                  ],
+                ),
+              ),
+              if (!desabilitado) Icon(Icons.chevron_right, color: cor),
+            ],
+          ),
         ),
       ),
     );
