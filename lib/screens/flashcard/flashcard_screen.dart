@@ -3,6 +3,8 @@ import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../controllers/flashcard_controller.dart';
+import 'widgets/botao_avaliacao.dart';
+import 'widgets/card_face.dart';
 
 class FlashcardScreen extends StatefulWidget {
   final int faseId;
@@ -118,7 +120,7 @@ class _FlashcardScreenState extends State<FlashcardScreen>
                       ..setEntry(3, 2, 0.001)
                       ..rotateY(angulo),
                     child: mostrarFrente
-                        ? _CardFace(
+                        ? CardFace(
                             texto: card.pergunta,
                             label: 'PERGUNTA',
                             cor: const Color(0xFF1C2040),
@@ -127,7 +129,7 @@ class _FlashcardScreenState extends State<FlashcardScreen>
                         : Transform(
                             alignment: Alignment.center,
                             transform: Matrix4.rotationY(pi),
-                            child: _CardFace(
+                            child: CardFace(
                               texto: card.resposta,
                               label: 'RESPOSTA',
                               cor: const Color(0xFF1A2A1A),
@@ -164,7 +166,7 @@ class _FlashcardScreenState extends State<FlashcardScreen>
         ignoring: !ctrl.virado,
         child: Row(
           children: [
-            _BotaoAvaliacao(
+            BotaoAvaliacao(
               emoji: '😓',
               label: 'Difícil',
               cor: const Color(0xFFB71C1C),
@@ -172,7 +174,7 @@ class _FlashcardScreenState extends State<FlashcardScreen>
               onTap: () => _avaliar(0),
             ),
             const SizedBox(width: 10),
-            _BotaoAvaliacao(
+            BotaoAvaliacao(
               emoji: '🤔',
               label: 'Médio',
               cor: const Color(0xFFE65100),
@@ -180,7 +182,7 @@ class _FlashcardScreenState extends State<FlashcardScreen>
               onTap: () => _avaliar(1),
             ),
             const SizedBox(width: 10),
-            _BotaoAvaliacao(
+            BotaoAvaliacao(
               emoji: '😊',
               label: 'Fácil',
               cor: const Color(0xFF1B5E20),
@@ -239,97 +241,3 @@ class _FlashcardScreenState extends State<FlashcardScreen>
   }
 }
 
-class _CardFace extends StatelessWidget {
-  final String texto;
-  final String label;
-  final Color cor;
-  final Color corBorda;
-
-  const _CardFace({
-    required this.texto,
-    required this.label,
-    required this.cor,
-    required this.corBorda,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      width: double.infinity,
-      constraints: const BoxConstraints(minHeight: 220),
-      padding: const EdgeInsets.all(24),
-      decoration: BoxDecoration(
-        color: cor,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: corBorda, width: 1.5),
-      ),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Text(
-            label,
-            style: const TextStyle(
-                fontSize: 10,
-                color: Color(0xFF888888),
-                fontWeight: FontWeight.w700,
-                letterSpacing: 1.5),
-          ),
-          const SizedBox(height: 20),
-          Text(
-            texto,
-            style: const TextStyle(
-                fontSize: 18,
-                color: Colors.white,
-                fontWeight: FontWeight.w600,
-                height: 1.5),
-            textAlign: TextAlign.center,
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class _BotaoAvaliacao extends StatelessWidget {
-  final String emoji;
-  final String label;
-  final Color cor;
-  final Color corBorda;
-  final VoidCallback onTap;
-
-  const _BotaoAvaliacao({
-    required this.emoji,
-    required this.label,
-    required this.cor,
-    required this.corBorda,
-    required this.onTap,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return Expanded(
-      child: GestureDetector(
-        onTap: onTap,
-        child: Container(
-          padding: const EdgeInsets.symmetric(vertical: 12),
-          decoration: BoxDecoration(
-            color: cor,
-            borderRadius: BorderRadius.circular(10),
-            border: Border.all(color: corBorda, width: 1),
-          ),
-          child: Column(
-            children: [
-              Text(emoji, style: const TextStyle(fontSize: 22)),
-              const SizedBox(height: 4),
-              Text(label,
-                  style: const TextStyle(
-                      fontSize: 11,
-                      color: Colors.white,
-                      fontWeight: FontWeight.w700)),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-}
