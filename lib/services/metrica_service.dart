@@ -126,4 +126,102 @@ class MetricaService {
           'tentativa_n': tentativaN,
         },
       ));
+
+  // ---- Modos de estudo ----
+
+  Future<void> desafioIniciado(int temaId, String nomeTema, int numQuestoes) =>
+      _repo.registrar(Evento(
+        evento: 'desafio_iniciado',
+        tema: nomeTema,
+        metadata: {'tema_id': temaId, 'num_questoes': numQuestoes},
+      ));
+
+  Future<void> desafioConcluido({
+    required int temaId,
+    required String nomeTema,
+    required int nota,
+    required int tempoTotalS,
+  }) =>
+      _repo.registrar(Evento(
+        evento: 'desafio_concluido',
+        tema: nomeTema,
+        valor: '$nota',
+        metadata: {'tema_id': temaId, 'nota': nota, 'tempo_total_s': tempoTotalS},
+      ));
+
+  Future<void> desafioAbandonado({
+    required int temaId,
+    required String nomeTema,
+    required int questaoAtual,
+    required int totalQuestoes,
+  }) =>
+      _repo.registrar(Evento(
+        evento: 'desafio_abandonado',
+        tema: nomeTema,
+        metadata: {
+          'tema_id': temaId,
+          'questao_atual': questaoAtual,
+          'total_questoes': totalQuestoes,
+        },
+      ));
+
+  Future<void> revisaoIniciada(int temaId, String nomeTema, int cardsVencidos) =>
+      _repo.registrar(Evento(
+        evento: 'revisao_iniciada',
+        tema: nomeTema,
+        metadata: {'tema_id': temaId, 'cards_vencidos': cardsVencidos},
+      ));
+
+  Future<void> revisaoConcluida({
+    required int temaId,
+    required String nomeTema,
+    required int cardsRevisados,
+    required int tempoTotalS,
+  }) =>
+      _repo.registrar(Evento(
+        evento: 'revisao_concluida',
+        tema: nomeTema,
+        metadata: {
+          'tema_id': temaId,
+          'cards_revisados': cardsRevisados,
+          'tempo_total_s': tempoTotalS,
+        },
+      ));
+
+  Future<void> maratonaIniciada(int temaId, String nomeTema) =>
+      _repo.registrar(Evento(
+        evento: 'maratona_iniciada',
+        tema: nomeTema,
+        metadata: {'tema_id': temaId},
+      ));
+
+  Future<void> maratonaConcluida({
+    required int temaId,
+    required String nomeTema,
+    required int score,
+    required bool recordeBatido,
+    required int tempoTotalS,
+  }) =>
+      _repo.registrar(Evento(
+        evento: 'maratona_concluida',
+        tema: nomeTema,
+        valor: '$score',
+        metadata: {
+          'tema_id': temaId,
+          'score': score,
+          'recorde_batido': recordeBatido,
+          'tempo_total_s': tempoTotalS,
+        },
+      ));
+
+  Future<void> maratonaAbandonada({
+    required int temaId,
+    required String nomeTema,
+    required int scoreParcial,
+  }) =>
+      _repo.registrar(Evento(
+        evento: 'maratona_abandonada',
+        tema: nomeTema,
+        metadata: {'tema_id': temaId, 'score_parcial': scoreParcial},
+      ));
 }
