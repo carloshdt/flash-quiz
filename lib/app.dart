@@ -7,6 +7,7 @@ import 'controllers/desafio_controller.dart';
 import 'controllers/flashcard_controller.dart';
 import 'controllers/home_controller.dart';
 import 'controllers/maratona_controller.dart';
+import 'controllers/revisao_controller.dart';
 import 'controllers/quiz_controller.dart';
 import 'controllers/secoes_controller.dart';
 import 'controllers/trilha_controller.dart';
@@ -16,6 +17,7 @@ import 'screens/flashcard/flashcard_screen.dart';
 import 'screens/home/home_screen.dart';
 import 'screens/maratona/maratona_result_screen.dart';
 import 'screens/maratona/maratona_screen.dart';
+import 'screens/revisao/revisao_screen.dart';
 import 'screens/quiz/quiz_result_screen.dart';
 import 'screens/quiz/quiz_screen.dart';
 import 'screens/secoes/secoes_screen.dart';
@@ -120,6 +122,17 @@ final _router = GoRouter(
       builder: (_, state) {
         final resultado = state.extra as MaratonaResultado;
         return MaratonaResultScreen(resultado: resultado);
+      },
+    ),
+    GoRoute(
+      path: '/revisao/:temaId',
+      builder: (_, state) {
+        final temaId = int.parse(state.pathParameters['temaId']!);
+        final nomeTema = state.uri.queryParameters['nomeTema'] ?? '';
+        return ChangeNotifierProvider(
+          create: (_) => RevisaoController(),
+          child: RevisaoScreen(temaId: temaId, nomeTema: nomeTema),
+        );
       },
     ),
   ],
