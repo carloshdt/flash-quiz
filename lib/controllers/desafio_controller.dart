@@ -58,7 +58,9 @@ class DesafioController extends ChangeNotifier {
         _metrica = metrica ?? MetricaService();
 
   CardModel? get questaoAtual =>
-      _questoes.isEmpty ? null : _questoes[_indiceAtual];
+      (_questoes.isEmpty || _indiceAtual >= _questoes.length)
+          ? null
+          : _questoes[_indiceAtual];
   List<String> get alternativasAtual => _alternativasAtual;
   int? get respostaSelecionada => _respostaSelecionada;
   EstadoQuestaoDesafio get estado => _estado;

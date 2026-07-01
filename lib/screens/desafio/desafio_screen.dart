@@ -33,8 +33,8 @@ class _DesafioScreenState extends State<DesafioScreen> {
 
   Future<bool> _onWillPop() async {
     final ctrl = context.read<DesafioController>();
-    // Pool vazio: sai direto, nada a abandonar
-    if (ctrl.poolVazio) {
+    // Carregando ou pool vazio: sai direto, nada a abandonar
+    if (ctrl.carregando || ctrl.poolVazio) {
       if (mounted) context.pop();
       return false;
     }

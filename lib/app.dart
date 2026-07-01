@@ -23,7 +23,11 @@ import 'screens/quiz/quiz_screen.dart';
 import 'screens/secoes/secoes_screen.dart';
 import 'screens/trilha/trilha_screen.dart';
 
+// Observer para telas que precisam recarregar ao voltar ao topo da pilha
+final RouteObserver<ModalRoute<void>> routeObserver = RouteObserver<ModalRoute<void>>();
+
 final _router = GoRouter(
+  observers: [routeObserver],
   routes: [
     GoRoute(
       path: '/',

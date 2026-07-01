@@ -2,6 +2,7 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
+import '../../app.dart';
 import '../../controllers/secoes_controller.dart';
 import '../../models/secao.dart';
 import '../../services/metrica_service.dart';
@@ -17,13 +18,32 @@ class SecoesScreen extends StatefulWidget {
   State<SecoesScreen> createState() => _SecoesScreenState();
 }
 
-class _SecoesScreenState extends State<SecoesScreen> {
+class _SecoesScreenState extends State<SecoesScreen> with RouteAware {
   @override
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
       context.read<SecoesController>().carregar(widget.temaId, widget.nomeTema);
     });
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    final route = ModalRoute.of(context);
+    if (route != null) routeObserver.subscribe(this, route);
+  }
+
+  @override
+  void dispose() {
+    routeObserver.unsubscribe(this);
+    super.dispose();
+  }
+
+  // Chamado quando uma rota acima desta é removida e esta volta ao topo
+  @override
+  void didPopNext() {
+    context.read<SecoesController>().carregar(widget.temaId, widget.nomeTema);
   }
 
   void _navegarParaTrilha(BuildContext context, Secao secao) {
@@ -36,15 +56,7 @@ class _SecoesScreenState extends State<SecoesScreen> {
   }
 
   void _abrirModo(BuildContext context, String rota) {
-    final ctrl = context.read<SecoesController>();
-    context
-        .push('$rota/${widget.temaId}?nomeTema=${Uri.encodeComponent(widget.nomeTema)}')
-        .then((_) {
-      // Recarrega ao voltar (atualiza "feito hoje", vencidos e recorde)
-      if (mounted) {
-        ctrl.carregar(widget.temaId, widget.nomeTema);
-      }
-    });
+    context.push('$rota/${widget.temaId}?nomeTema=${Uri.encodeComponent(widget.nomeTema)}');
   }
 
   @override
@@ -109,7 +121,7 @@ class _SecoesScreenState extends State<SecoesScreen> {
                   titulo: 'Desafio Diário',
                   subtitulo: ctrl.notaDesafioHoje != null
                       ? '✓ Feito hoje · ${ctrl.notaDesafioHoje} pontos'
-                      : '5 questões · uma vez por dia',
+                      : '${ctrl.desafioNumQuestoes} questões · uma vez por dia',
                   cor: AppColors.orange,
                   desabilitado: ctrl.notaDesafioHoje != null,
                   onTap: () => _abrirModo(context, '/desafio'),
@@ -131,7 +143,7 @@ class _SecoesScreenState extends State<SecoesScreen> {
                   titulo: 'Maratona',
                   subtitulo: ctrl.recordeMaratona > 0
                       ? 'Recorde: ${ctrl.recordeMaratona} acertos'
-                      : 'Responda até errar 3',
+                      : 'Responda até errar ${ctrl.maratonaMaxErros}',
                   cor: AppColors.teal,
                   desabilitado: false,
                   onTap: () => _abrirModo(context, '/maratona'),
