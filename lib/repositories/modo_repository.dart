@@ -1,6 +1,7 @@
 // lib/repositories/modo_repository.dart
 // Repositório para tentativas de Desafio e Maratona (tabela modo_tentativas).
 import '../db/database_helper.dart';
+import '../models/card_model.dart';
 
 class ModoRepository {
   final DatabaseHelper _db;
@@ -76,5 +77,59 @@ class ModoRepository {
       WHERE modo = 'maratona' AND tema_id = ? AND concluido = 1
     ''', [temaId]);
     return (rows.first['recorde'] as int?) ?? 0;
+  }
+
+  // Cards de fases desbloqueadas do tema (regra idêntica ao TrilhaController):
+  // primeira fase da seção OU fase anterior com quiz >= 70 concluído.
+  Future<List<CardModel>> cardsPoolDesbloqueado(int temaId) async {
+    final banco = await _db.banco;
+    final rows = await banco.rawQuery('''
+      SELECT c.* FROM cards c
+      JOIN fases f ON f.id = c.fase_id
+      JOIN secoes s ON s.id = f.secao_id
+      WHERE s.tema_id = ?
+        AND (
+          f.ordem = (SELECT MIN(f2.ordem) FROM fases f2 WHERE f2.secao_id = f.secao_id)
+          OR EXISTS (
+            SELECT 1 FROM quiz_tentativas qt
+            JOIN fases fa ON fa.id = qt.fase_id
+            WHERE fa.secao_id = f.secao_id
+              AND fa.ordem = (SELECT MAX(f3.ordem) FROM fases f3
+                              WHERE f3.secao_id = f.secao_id AND f3.ordem < f.ordem)
+              AND qt.concluido = 1 AND qt.pontuacao >= 70
+          )
+        )
+    ''', [temaId]);
+    return rows.map(CardModel.fromMap).toList();
+  }
+
+  // Cards vencidos do SRS no tema (mais atrasados primeiro).
+  // Card visto implica fase desbloqueada — sem filtro extra de desbloqueio.
+  Future<List<CardModel>> cardsVencidos(int temaId, int limite) async {
+    final banco = await _db.banco;
+    final rows = await banco.rawQuery('''
+      SELECT c.* FROM cards c
+      JOIN progresso_flashcard pf ON pf.card_id = c.id
+      JOIN fases f ON f.id = c.fase_id
+      JOIN secoes s ON s.id = f.secao_id
+      WHERE s.tema_id = ? AND pf.total_visto > 0
+        AND DATE(pf.proxima_revisao) <= DATE('now', 'localtime')
+      ORDER BY pf.proxima_revisao ASC
+      LIMIT ?
+    ''', [temaId, limite]);
+    return rows.map(CardModel.fromMap).toList();
+  }
+
+  Future<int> contarCardsVencidos(int temaId) async {
+    final banco = await _db.banco;
+    final rows = await banco.rawQuery('''
+      SELECT COUNT(*) AS total FROM cards c
+      JOIN progresso_flashcard pf ON pf.card_id = c.id
+      JOIN fases f ON f.id = c.fase_id
+      JOIN secoes s ON s.id = f.secao_id
+      WHERE s.tema_id = ? AND pf.total_visto > 0
+        AND DATE(pf.proxima_revisao) <= DATE('now', 'localtime')
+    ''', [temaId]);
+    return (rows.first['total'] as int?) ?? 0;
   }
 }

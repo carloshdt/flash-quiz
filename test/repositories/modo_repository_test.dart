@@ -85,4 +85,90 @@ void main() {
 
     expect(await repo.recordeMaratona(1), 20);
   });
+
+  // Helper: monta tema isolado com 1 seção e 2 fases (2 cards cada)
+  Future<({int temaId, int fase1, int fase2, List<int> cardsF1, List<int> cardsF2})>
+      seedTema() async {
+    final db = await DatabaseHelper().banco;
+    final temaId = await db.insert('temas', {'nome': 'TesteModo', 'icone': '🧪'});
+    final secaoId = await db.insert('secoes', {'tema_id': temaId, 'nome': 'S1', 'ordem': 0});
+    final fase1 = await db.insert('fases', {'secao_id': secaoId, 'nome': 'F1', 'ordem': 1});
+    final fase2 = await db.insert('fases', {'secao_id': secaoId, 'nome': 'F2', 'ordem': 2});
+    Future<int> card(int faseId, String p) => db.insert('cards', {
+          'fase_id': faseId,
+          'pergunta': p,
+          'resposta': 'R',
+          'alternativa_b': 'B',
+          'alternativa_c': 'C',
+          'alternativa_d': 'D',
+        });
+    final cardsF1 = [await card(fase1, 'p1'), await card(fase1, 'p2')];
+    final cardsF2 = [await card(fase2, 'p3'), await card(fase2, 'p4')];
+    return (temaId: temaId, fase1: fase1, fase2: fase2, cardsF1: cardsF1, cardsF2: cardsF2);
+  }
+
+  test('cardsPoolDesbloqueado retorna só cards da primeira fase sem quiz passado', () async {
+    final repo = ModoRepository();
+    final seed = await seedTema();
+    final pool = await repo.cardsPoolDesbloqueado(seed.temaId);
+    expect(pool.map((c) => c.id).toSet(), seed.cardsF1.toSet());
+  });
+
+  test('cardsPoolDesbloqueado inclui fase 2 após quiz da fase 1 passar com >= 70', () async {
+    final repo = ModoRepository();
+    final seed = await seedTema();
+    final db = await DatabaseHelper().banco;
+    await db.insert('quiz_tentativas',
+        {'fase_id': seed.fase1, 'pontuacao': 80, 'estrelas': 2, 'concluido': 1});
+
+    final pool = await repo.cardsPoolDesbloqueado(seed.temaId);
+    expect(pool.map((c) => c.id).toSet(), {...seed.cardsF1, ...seed.cardsF2});
+  });
+
+  test('cardsPoolDesbloqueado ignora quiz reprovado (< 70)', () async {
+    final repo = ModoRepository();
+    final seed = await seedTema();
+    final db = await DatabaseHelper().banco;
+    await db.insert('quiz_tentativas',
+        {'fase_id': seed.fase1, 'pontuacao': 60, 'estrelas': 0, 'concluido': 1});
+
+    final pool = await repo.cardsPoolDesbloqueado(seed.temaId);
+    expect(pool.map((c) => c.id).toSet(), seed.cardsF1.toSet());
+  });
+
+  test('cardsVencidos retorna só cards com proxima_revisao <= hoje, com limite', () async {
+    final repo = ModoRepository();
+    final seed = await seedTema();
+    final db = await DatabaseHelper().banco;
+    final ontem = DateTime.now().subtract(const Duration(days: 1)).toIso8601String();
+    final amanha = DateTime.now().add(const Duration(days: 1)).toIso8601String();
+
+    // card vencido, card futuro, card nunca visto
+    await db.insert('progresso_flashcard', {
+      'card_id': seed.cardsF1[0], 'nivel_srs': 0, 'total_visto': 2,
+      'total_acerto': 1, 'proxima_revisao': ontem,
+    });
+    await db.insert('progresso_flashcard', {
+      'card_id': seed.cardsF1[1], 'nivel_srs': 2, 'total_visto': 1,
+      'total_acerto': 1, 'proxima_revisao': amanha,
+    });
+
+    final vencidos = await repo.cardsVencidos(seed.temaId, 20);
+    expect(vencidos.map((c) => c.id).toList(), [seed.cardsF1[0]]);
+
+    final limitado = await repo.cardsVencidos(seed.temaId, 0);
+    expect(limitado, isEmpty);
+  });
+
+  test('contarCardsVencidos conta cards vencidos do tema', () async {
+    final repo = ModoRepository();
+    final seed = await seedTema();
+    final db = await DatabaseHelper().banco;
+    final ontem = DateTime.now().subtract(const Duration(days: 1)).toIso8601String();
+    await db.insert('progresso_flashcard', {
+      'card_id': seed.cardsF1[0], 'nivel_srs': 0, 'total_visto': 1,
+      'total_acerto': 0, 'proxima_revisao': ontem,
+    });
+    expect(await repo.contarCardsVencidos(seed.temaId), 1);
+  });
 }
