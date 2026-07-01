@@ -23,8 +23,13 @@ HomeScreen
 | SecoesScreen | `screens/secoes/secoes_screen.dart` | ✅ |
 | TrilhaScreen | `screens/trilha/trilha_screen.dart` | ✅ |
 | FlashcardScreen | `screens/flashcard/flashcard_screen.dart` | ✅ |
-| QuizScreen | `screens/quiz/quiz_screen.dart` | ⏳ Plano 3 |
-| QuizResultScreen | `screens/quiz/quiz_result_screen.dart` | ⏳ Plano 3 |
+| QuizScreen | `screens/quiz/quiz_screen.dart` | ✅ |
+| QuizResultScreen | `screens/quiz/quiz_result_screen.dart` | ✅ |
+| DesafioScreen | `screens/desafio/desafio_screen.dart` | ✅ |
+| DesafioResultScreen | `screens/desafio/desafio_result_screen.dart` | ✅ |
+| MaratonaScreen | `screens/maratona/maratona_screen.dart` | ✅ |
+| MaratonaResultScreen | `screens/maratona/maratona_result_screen.dart` | ✅ |
+| RevisaoScreen | `screens/revisao/revisao_screen.dart` | ✅ |
 | PerfilScreen | `screens/perfil/perfil_screen.dart` | ⏳ Plano 4 |
 
 ### Trilha — estados dos nós
@@ -81,6 +86,14 @@ Cada fase gera 2 nós na trilha: **nó de flashcard** (círculo) e **nó de quiz
 - % da seção = SUM(melhor pontuação por fase) ÷ (total_fases × 100)
 - Calculado em `SecaoRepository.getProgressoPorTema()` via `quiz_tentativas`
 - Antes do quiz ser implementado: todas as seções mostram 0% (esperado)
+
+### Modos de estudo (por tema, entrada na SecoesScreen)
+- **Desafio Diário:** 1x/dia por tema, `desafio_num_questoes` questões do pool desbloqueado, nota 0-100, não afeta progressão. Gate: `ModoRepository.notaDesafioHoje`.
+- **Revisão Inteligente:** flashcards vencidos do SRS no tema (`revisao_max_cards` máx), atualiza SRS normal.
+- **Maratona:** questões sem fim do pool desbloqueado, `maratona_max_erros` erros encerram, score = acertos, recorde por tema. Avança sem delay de 1s (modo arcade).
+- Tentativas dos modos ficam em `modo_tentativas` (nunca em `quiz_tentativas` — essa alimenta progressão).
+- Pool desbloqueado = mesma regra da trilha (primeira fase da seção OU fase anterior com quiz ≥ 70).
+- SecoesScreen recarrega via `routeObserver` (app.dart) ao voltar ao topo da pilha.
 
 ### Gamificação
 - XP por card: Fácil = 10 | Médio = 7 | Difícil = 3
