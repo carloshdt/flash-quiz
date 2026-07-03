@@ -225,6 +225,38 @@ class MetricaService {
         metadata: {'tema_id': temaId, 'score_parcial': scoreParcial},
       ));
 
+  // ---- Bichinho ----
+
+  Future<void> bichinhoNasceu(String nomeTema, int especie) =>
+      _repo.registrar(Evento(
+        evento: 'bichinho_nasceu',
+        tema: nomeTema,
+        valor: '$especie',
+      ));
+
+  Future<void> bichinhoAlimentado(
+          String nomeTema, int energiaGanha, int energiaTotal) =>
+      _repo.registrar(Evento(
+        evento: 'bichinho_alimentado',
+        tema: nomeTema,
+        valor: '$energiaGanha',
+        metadata: {'energia_total': energiaTotal},
+      ));
+
+  Future<void> bichinhoEvoluiu(String nomeTema, int estagioNovo) =>
+      _repo.registrar(Evento(
+        evento: 'bichinho_evoluiu',
+        tema: nomeTema,
+        valor: '$estagioNovo',
+      ));
+
+  Future<void> bichinhoPopupAberto(String nomeTema, int estagio) =>
+      _repo.registrar(Evento(
+        evento: 'bichinho_popup_aberto',
+        tema: nomeTema,
+        valor: '$estagio',
+      ));
+
   // ---- Áudio e haptics ----
 
   Future<void> somToggled(bool ativo) => _repo.registrar(Evento(

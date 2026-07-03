@@ -1,13 +1,18 @@
 // lib/controllers/flashcard_controller.dart
 import 'package:flutter/foundation.dart';
+import '../models/bichinho.dart';
 import '../models/card_model.dart';
-import '../repositories/progresso_repository.dart';
+import '../repositories/bichinho_repository.dart';
 import '../repositories/config_repository.dart';
+import '../repositories/progresso_repository.dart';
+import '../repositories/tema_repository.dart';
 import '../services/metrica_service.dart';
 
 class FlashcardController extends ChangeNotifier {
   final ProgressoRepository _progressoRepo;
   final ConfigRepository _configRepo;
+  final BichinhoRepository _bichinhoRepo;
+  final TemaRepository _temaRepo;
   final MetricaService _metrica;
 
   List<CardModel> _cards = [];
@@ -19,13 +24,21 @@ class FlashcardController extends ChangeNotifier {
   int faseId = 0;
   String nomeFase = '';
   String nomeTema = '';
+  int? _temaId; // resolvido 1x no carregarSessao (a rota só passa o nome do tema)
+
+  /// Último resultado de alimentar o bichinho — a UI usa pra animar evolução.
+  ResultadoAlimentar? ultimoAlimentar;
 
   FlashcardController({
     ProgressoRepository? progressoRepo,
     ConfigRepository? configRepo,
+    BichinhoRepository? bichinhoRepo,
+    TemaRepository? temaRepo,
     MetricaService? metrica,
   })  : _progressoRepo = progressoRepo ?? ProgressoRepository(),
         _configRepo = configRepo ?? ConfigRepository(),
+        _bichinhoRepo = bichinhoRepo ?? BichinhoRepository(),
+        _temaRepo = temaRepo ?? TemaRepository(),
         _metrica = metrica ?? MetricaService();
 
   CardModel? get cardAtual =>
@@ -47,6 +60,16 @@ class FlashcardController extends ChangeNotifier {
     _sessaoConcluida = false;
     _cards = [];
     notifyListeners();
+
+    // Resolve o id do tema pelo nome — necessário pro bichinho (sem SQL aqui).
+    final temas = await _temaRepo.getTemas();
+    _temaId = null;
+    for (final t in temas) {
+      if (t.nome == novoNomeTema) {
+        _temaId = t.id;
+        break;
+      }
+    }
 
     final limite =
         await _configRepo.getValorInt('flashcard_cards_por_sessao', padrao: 20);
@@ -76,6 +99,7 @@ class FlashcardController extends ChangeNotifier {
 
     await _progressoRepo.salvarProgresso(card.id, nivelSrs);
     await _metrica.cardAvaliado(card.id, nivelSrs, nomeTema);
+    await _alimentarBichinho();
 
     _indiceAtual++;
     _virado = false;
@@ -87,5 +111,20 @@ class FlashcardController extends ChangeNotifier {
     }
 
     notifyListeners();
+  }
+
+  // Alimenta o bichinho do tema com a energia do card (valor da config).
+  Future<void> _alimentarBichinho() async {
+    final temaId = _temaId;
+    if (temaId == null) return;
+
+    final energia =
+        await _configRepo.getValorInt('bichinho_energia_card', padrao: 2);
+    ultimoAlimentar = await _bichinhoRepo.alimentar(temaId, energia);
+    await _metrica.bichinhoAlimentado(
+        nomeTema, ultimoAlimentar!.energiaGanha, ultimoAlimentar!.bichinho.energia);
+    if (ultimoAlimentar!.evoluiu) {
+      await _metrica.bichinhoEvoluiu(nomeTema, ultimoAlimentar!.bichinho.estagio);
+    }
   }
 }

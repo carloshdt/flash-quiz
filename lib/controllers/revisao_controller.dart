@@ -1,6 +1,8 @@
 // lib/controllers/revisao_controller.dart
 import 'package:flutter/foundation.dart';
+import '../models/bichinho.dart';
 import '../models/card_model.dart';
+import '../repositories/bichinho_repository.dart';
 import '../repositories/config_repository.dart';
 import '../repositories/modo_repository.dart';
 import '../repositories/progresso_repository.dart';
@@ -10,6 +12,7 @@ class RevisaoController extends ChangeNotifier {
   final ModoRepository _modoRepo;
   final ProgressoRepository _progressoRepo;
   final ConfigRepository _configRepo;
+  final BichinhoRepository _bichinhoRepo;
   final MetricaService _metrica;
 
   List<CardModel> _cards = [];
@@ -23,14 +26,19 @@ class RevisaoController extends ChangeNotifier {
   int temaId = 0;
   String nomeTema = '';
 
+  /// Último resultado de alimentar o bichinho — a UI usa pra animar evolução.
+  ResultadoAlimentar? ultimoAlimentar;
+
   RevisaoController({
     ModoRepository? modoRepo,
     ProgressoRepository? progressoRepo,
     ConfigRepository? configRepo,
+    BichinhoRepository? bichinhoRepo,
     MetricaService? metrica,
   })  : _modoRepo = modoRepo ?? ModoRepository(),
         _progressoRepo = progressoRepo ?? ProgressoRepository(),
         _configRepo = configRepo ?? ConfigRepository(),
+        _bichinhoRepo = bichinhoRepo ?? BichinhoRepository(),
         _metrica = metrica ?? MetricaService();
 
   CardModel? get cardAtual =>
@@ -93,6 +101,17 @@ class RevisaoController extends ChangeNotifier {
         cardsRevisados: _cards.length,
         tempoTotalS: tempoTotal,
       );
+
+      // Alimenta o bichinho do tema com a energia do modo concluído (config).
+      final energia =
+          await _configRepo.getValorInt('bichinho_energia_modo', padrao: 10);
+      ultimoAlimentar = await _bichinhoRepo.alimentar(temaId, energia);
+      await _metrica.bichinhoAlimentado(nomeTema,
+          ultimoAlimentar!.energiaGanha, ultimoAlimentar!.bichinho.energia);
+      if (ultimoAlimentar!.evoluiu) {
+        await _metrica.bichinhoEvoluiu(
+            nomeTema, ultimoAlimentar!.bichinho.estagio);
+      }
     } else {
       await _metrica.cardVisto(
           _cards[_indiceAtual].id, _cards[_indiceAtual].faseId, nomeTema);

@@ -1,7 +1,9 @@
 // lib/controllers/desafio_controller.dart
 import 'dart:async';
 import 'package:flutter/foundation.dart';
+import '../models/bichinho.dart';
 import '../models/card_model.dart';
+import '../repositories/bichinho_repository.dart';
 import '../repositories/config_repository.dart';
 import '../repositories/modo_repository.dart';
 import '../services/metrica_service.dart';
@@ -26,6 +28,7 @@ class DesafioResultado {
 class DesafioController extends ChangeNotifier {
   final ModoRepository _modoRepo;
   final ConfigRepository _configRepo;
+  final BichinhoRepository _bichinhoRepo;
   final MetricaService _metrica;
 
   List<CardModel> _questoes = [];
@@ -49,12 +52,17 @@ class DesafioController extends ChangeNotifier {
   int temaId = 0;
   String nomeTema = '';
 
+  /// Último resultado de alimentar o bichinho — a UI usa pra animar evolução.
+  ResultadoAlimentar? ultimoAlimentar;
+
   DesafioController({
     ModoRepository? modoRepo,
     ConfigRepository? configRepo,
+    BichinhoRepository? bichinhoRepo,
     MetricaService? metrica,
   })  : _modoRepo = modoRepo ?? ModoRepository(),
         _configRepo = configRepo ?? ConfigRepository(),
+        _bichinhoRepo = bichinhoRepo ?? BichinhoRepository(),
         _metrica = metrica ?? MetricaService();
 
   CardModel? get questaoAtual =>
@@ -186,6 +194,16 @@ class DesafioController extends ChangeNotifier {
       nota: nota,
       tempoTotalS: tempoTotal,
     );
+
+    // Alimenta o bichinho do tema com a energia do modo concluído (config).
+    final energia =
+        await _configRepo.getValorInt('bichinho_energia_modo', padrao: 10);
+    ultimoAlimentar = await _bichinhoRepo.alimentar(temaId, energia);
+    await _metrica.bichinhoAlimentado(
+        nomeTema, ultimoAlimentar!.energiaGanha, ultimoAlimentar!.bichinho.energia);
+    if (ultimoAlimentar!.evoluiu) {
+      await _metrica.bichinhoEvoluiu(nomeTema, ultimoAlimentar!.bichinho.estagio);
+    }
 
     return DesafioResultado(
       nota: nota,
