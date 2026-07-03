@@ -21,6 +21,7 @@ import 'screens/quiz/quiz_result_screen.dart';
 import 'screens/quiz/quiz_screen.dart';
 import 'screens/secoes/secoes_screen.dart';
 import 'screens/trilha/trilha_screen.dart';
+import 'services/audio_service.dart';
 import 'theme/app_theme.dart';
 
 // Observer para telas que precisam recarregar ao voltar ao topo da pilha
@@ -153,6 +154,7 @@ class FlashQuizApp extends StatelessWidget {
         ChangeNotifierProvider(create: (_) => SecoesController()),
         ChangeNotifierProvider(create: (_) => TrilhaController()),
         ChangeNotifierProvider(create: (_) => FlashcardController()),
+        Provider<AudioService>(create: (_) => AudioService()..carregarPreferencias()),
       ],
       child: MaterialApp.router(
         title: 'FlashQuiz',

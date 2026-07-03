@@ -224,4 +224,16 @@ class MetricaService {
         tema: nomeTema,
         metadata: {'tema_id': temaId, 'score_parcial': scoreParcial},
       ));
+
+  // ---- Áudio e haptics ----
+
+  Future<void> somToggled(bool ativo) => _repo.registrar(Evento(
+        evento: 'som_toggled',
+        valor: ativo ? 'on' : 'off',
+      ));
+
+  Future<void> hapticsToggled(bool ativo) => _repo.registrar(Evento(
+        evento: 'haptics_toggled',
+        valor: ativo ? 'on' : 'off',
+      ));
 }
