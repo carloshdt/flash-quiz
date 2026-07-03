@@ -1,0 +1,90 @@
+// test/repositories/bichinho_repository_test.dart
+import 'package:flutter_test/flutter_test.dart';
+import 'package:sqflite_common_ffi/sqflite_ffi.dart';
+import 'package:flashquiz/db/database_helper.dart';
+import 'package:flashquiz/repositories/bichinho_repository.dart';
+import 'package:flashquiz/widgets/bichinho/bichinho_sprite.dart';
+
+void main() {
+  setUpAll(() {
+    sqfliteFfiInit();
+    databaseFactory = databaseFactoryFfi;
+  });
+
+  setUp(() => DatabaseHelper.setCaminhoParaTeste(inMemoryDatabasePath));
+  tearDown(() async => DatabaseHelper().fecharParaTeste());
+
+  Future<int> criarTema() async {
+    final db = await DatabaseHelper().banco;
+    return db.insert('temas', {'nome': 'CFC', 'icone': '🚗'});
+  }
+
+  test('obterOuCriar cria ovo na primeira visita e reporta criado', () async {
+    final temaId = await criarTema();
+    final repo = BichinhoRepository();
+    final r = await repo.obterOuCriar(temaId);
+    expect(r.criado, isTrue);
+    expect(r.bichinho.estagio, 0);
+    expect(r.bichinho.energia, 0);
+    expect(r.bichinho.especie, temaId % 3);
+    // segunda chamada retorna o mesmo, sem criar
+    final r2 = await repo.obterOuCriar(temaId);
+    expect(r2.criado, isFalse);
+    expect(r2.bichinho.id, r.bichinho.id);
+  });
+
+  test('alimentar sem streak soma energia base', () async {
+    final temaId = await criarTema();
+    final repo = BichinhoRepository();
+    await repo.obterOuCriar(temaId);
+    final r = await repo.alimentar(temaId, 10);
+    expect(r.energiaGanha, 10);
+    expect(r.bichinho.energia, 10);
+    expect(r.evoluiu, isFalse);
+  });
+
+  test('alimentar com streak ativo aplica multiplicador 1.5 arredondado pra baixo', () async {
+    final temaId = await criarTema();
+    final db = await DatabaseHelper().banco;
+    // streak ativo no perfil (linha seedada na migration v1)
+    await db.update('perfil', {'streak_atual': 3});
+    final repo = BichinhoRepository();
+    await repo.obterOuCriar(temaId);
+    final r = await repo.alimentar(temaId, 15);
+    expect(r.energiaGanha, 22); // 15 * 1.5 = 22.5 → 22
+  });
+
+  test('cruzar threshold promove estágio e reporta evoluiu', () async {
+    final temaId = await criarTema();
+    final repo = BichinhoRepository();
+    await repo.obterOuCriar(temaId);
+    final r = await repo.alimentar(temaId, 50); // threshold_1 = 50
+    expect(r.evoluiu, isTrue);
+    expect(r.bichinho.estagio, 1);
+  });
+
+  test('energia acumulada nunca é perdida e lendário não passa de 4', () async {
+    final temaId = await criarTema();
+    final repo = BichinhoRepository();
+    await repo.obterOuCriar(temaId);
+    await repo.alimentar(temaId, 2000);
+    final r = await repo.alimentar(temaId, 100);
+    expect(r.bichinho.estagio, 4);
+    expect(r.bichinho.energia, 2100);
+    expect(r.evoluiu, isFalse); // já era lendário
+  });
+
+  test('humor por inatividade no tema', () async {
+    final temaId = await criarTema();
+    final repo = BichinhoRepository();
+    await repo.obterOuCriar(temaId);
+    final db = await DatabaseHelper().banco;
+
+    // sem eventos = dormindo (nunca estudou)
+    expect(await repo.humor(temaId), HumorBichinho.dormindo);
+
+    // evento hoje = feliz
+    await db.insert('eventos', {'evento': 'card_avaliado', 'tema': 'CFC'});
+    expect(await repo.humor(temaId), HumorBichinho.feliz);
+  });
+}
