@@ -2,6 +2,7 @@
 // Post-it com dobra de canto e leve rotação.
 import 'package:flutter/material.dart';
 import '../../theme/app_theme.dart';
+import 'papel_util.dart';
 
 class PostIt extends StatelessWidget {
   final Widget child;
@@ -13,7 +14,7 @@ class PostIt extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Transform.rotate(
-      angle: angulo * 3.14159 / 180,
+      angle: grausParaRad(angulo),
       child: Stack(
         children: [
           Container(

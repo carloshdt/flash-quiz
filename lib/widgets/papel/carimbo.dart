@@ -3,6 +3,7 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../theme/app_theme.dart';
+import 'papel_util.dart';
 
 class Carimbo extends StatelessWidget {
   final String texto;
@@ -21,7 +22,7 @@ class Carimbo extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Transform.rotate(
-      angle: angulo * 3.14159 / 180,
+      angle: grausParaRad(angulo),
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
         decoration: BoxDecoration(

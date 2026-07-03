@@ -1,6 +1,7 @@
 // lib/widgets/papel/fita.dart
 // Fita adesiva translúcida que "cola" o topo de um card.
 import 'package:flutter/material.dart';
+import 'papel_util.dart';
 
 class Fita extends StatelessWidget {
   final double largura;
@@ -11,7 +12,7 @@ class Fita extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Transform.rotate(
-      angle: angulo * 3.14159 / 180,
+      angle: grausParaRad(angulo),
       child: Container(
         width: largura,
         height: 22,

@@ -37,6 +37,24 @@ void main() {
     expect(apertou, isTrue);
   });
 
+  testWidgets('BotaoPapel desabilitado não dispara nada ao tap', (tester) async {
+    final semantics = tester.ensureSemantics();
+    await tester.pumpWidget(_wrap(const BotaoPapel(
+      onPressed: null,
+      child: Text('Bora'),
+    )));
+    // tap não lança nem dispara nada (onPressed é null)
+    await tester.tap(find.text('Bora'), warnIfMissed: false);
+    await tester.pumpAndSettle();
+    expect(find.text('Bora'), findsOneWidget);
+    // e o leitor de tela enxerga um botão desabilitado
+    expect(
+      tester.getSemantics(find.text('Bora')),
+      isSemantics(isButton: true, isEnabled: false),
+    );
+    semantics.dispose();
+  });
+
   testWidgets('PostIt e Carimbo renderizam texto', (tester) async {
     await tester.pumpWidget(_wrap(const Column(children: [
       PostIt(child: Text('lembrete')),
