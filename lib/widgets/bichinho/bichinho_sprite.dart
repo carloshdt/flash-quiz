@@ -21,7 +21,7 @@ class BichinhoSprite extends StatefulWidget {
     this.humor = HumorBichinho.feliz,
     this.tamanho = 48,
     this.animado = true,
-  });
+  }) : assert(estagio >= 0 && estagio <= 4, 'estagio deve estar entre 0 e 4');
 
   @override
   State<BichinhoSprite> createState() => _BichinhoSpriteState();
@@ -34,10 +34,27 @@ class _BichinhoSpriteState extends State<BichinhoSprite> {
   @override
   void initState() {
     super.initState();
-    if (widget.animado) {
-      _timer = Timer.periodic(const Duration(milliseconds: 800), (_) {
-        if (mounted) setState(() => _up = !_up);
-      });
+    if (widget.animado) _iniciarBounce();
+  }
+
+  /// Agenda o toggle periódico do bounce idle.
+  void _iniciarBounce() {
+    _timer = Timer.periodic(const Duration(milliseconds: 800), (_) {
+      if (mounted) setState(() => _up = !_up);
+    });
+  }
+
+  @override
+  void didUpdateWidget(covariant BichinhoSprite old) {
+    super.didUpdateWidget(old);
+    if (old.animado != widget.animado) {
+      _timer?.cancel();
+      _timer = null;
+      if (widget.animado) {
+        _iniciarBounce();
+      } else {
+        _up = false; // volta pra posição de repouso
+      }
     }
   }
 
@@ -77,7 +94,8 @@ class _PixelPainter extends CustomPainter {
   @override
   void paint(Canvas canvas, Size size) {
     final px = size.width / 16;
-    final paint = Paint();
+    // sem anti-alias — mantém a pixel art crisp
+    final paint = Paint()..isAntiAlias = false;
     for (var y = 0; y < 16; y++) {
       for (var x = 0; x < 16; x++) {
         final v = matriz[y][x];
