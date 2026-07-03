@@ -1,7 +1,6 @@
 // lib/app.dart
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
-import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 import 'controllers/desafio_controller.dart';
 import 'controllers/flashcard_controller.dart';
@@ -22,6 +21,7 @@ import 'screens/quiz/quiz_result_screen.dart';
 import 'screens/quiz/quiz_screen.dart';
 import 'screens/secoes/secoes_screen.dart';
 import 'screens/trilha/trilha_screen.dart';
+import 'theme/app_theme.dart';
 
 // Observer para telas que precisam recarregar ao voltar ao topo da pilha
 final RouteObserver<ModalRoute<void>> routeObserver = RouteObserver<ModalRoute<void>>();
@@ -156,15 +156,7 @@ class FlashQuizApp extends StatelessWidget {
       ],
       child: MaterialApp.router(
         title: 'FlashQuiz',
-        theme: ThemeData(
-          colorScheme: ColorScheme.fromSeed(
-            seedColor: const Color(0xFF7C4DFF),
-            brightness: Brightness.dark,
-          ),
-          scaffoldBackgroundColor: const Color(0xFF151C35),
-          textTheme: GoogleFonts.nunitoTextTheme(ThemeData.dark().textTheme),
-          useMaterial3: true,
-        ),
+        theme: AppTheme.light,
         routerConfig: _router,
       ),
     );

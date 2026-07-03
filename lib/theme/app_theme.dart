@@ -1,30 +1,100 @@
 // lib/theme/app_theme.dart
+// Design system "Recorte & Cola" — scrapbook de papel claro.
+// Fundação: papel creme + tinta quase-preta. Acentos vivos usados com parcimônia.
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
 
 class AppColors {
   AppColors._();
 
-  static const Color background = Color(0xFF151C35);
-  static const Color surface = Color(0xFF1C2448);
-  static const Color headerBg = Color(0xFF1A2F6E);
-  static const Color sheetBg = Color(0xFF1C2040);
-  static const Color purple = Color(0xFF7C4DFF);
-  static const Color orange = Color(0xFFFF8C00);
-  static const Color gold = Color(0xFFFFD600);
-  static const Color teal = Color(0xFF00897B);
-  static const Color textSecondary = Color(0xFF90CAF9);
-  static const Color divider = Color(0x142D3A7A); // 8% white-blue
+  // Fundação
+  static const Color papel = Color(0xFFF2EDE4);      // fundo geral — papel creme
+  static const Color cartao = Color(0xFFFFFFFF);     // superfícies/cards
+  static const Color tinta = Color(0xFF33302A);      // texto principal
+  static const Color tintaSuave = Color(0xFF8A8378); // texto secundário — lápis
+  static const Color grao = Color(0xFFD8D0C0);       // grão do papel, divisores
+
+  // Acentos
+  static const Color laranja = Color(0xFFFF5C39); // CTA, energia
+  static const Color verde = Color(0xFF5CB270);   // sucesso, aprovado
+  static const Color amarelo = Color(0xFFF7D046); // post-its, estrelas
+  static const Color azul = Color(0xFF4DA6FF);    // info
+  static const Color rosa = Color(0xFFFF9EBB);    // carinho
 
   static const List<Color> _accents = [
-    Color(0xFFFFD600),
-    Color(0xFF00E676),
-    Color(0xFF64A0FF),
-    Color(0xFFFF6B6B),
-    Color(0xFFFF9F43),
-    Color(0xFFA29BFE),
-    Color(0xFF55EFC4),
-    Color(0xFFFF7675),
+    laranja,
+    verde,
+    azul,
+    rosa,
+    amarelo,
+    Color(0xFFB48CD9), // roxo suave
+    Color(0xFF7FDBCA), // teal
+    Color(0xFFFF8A7A), // coral
   ];
 
   static Color accentFor(int id) => _accents[id % _accents.length];
+
+  // COMPAT — remover na task final de limpeza (aliases pro código antigo compilar)
+  static const Color background = papel;
+  static const Color surface = cartao;
+  static const Color headerBg = papel;
+  static const Color sheetBg = cartao;
+  static const Color purple = laranja;
+  static const Color orange = laranja;
+  static const Color gold = amarelo;
+  static const Color teal = Color(0xFF7FDBCA);
+  static const Color textSecondary = tintaSuave;
+  static const Color divider = grao;
+}
+
+class AppTheme {
+  AppTheme._();
+
+  /// Tema claro único do app. Patrick Hand em títulos, Nunito no corpo.
+  static ThemeData get light {
+    final base = ThemeData(
+      useMaterial3: true,
+      brightness: Brightness.light,
+      scaffoldBackgroundColor: AppColors.papel,
+      colorScheme: ColorScheme.fromSeed(
+        seedColor: AppColors.laranja,
+        brightness: Brightness.light,
+        surface: AppColors.papel,
+      ),
+      appBarTheme: const AppBarTheme(
+        backgroundColor: AppColors.papel,
+        foregroundColor: AppColors.tinta,
+        elevation: 0,
+        centerTitle: false,
+      ),
+      splashFactory: NoSplash.splashFactory, // pressão de papel substitui ripple
+      highlightColor: Colors.transparent,
+    );
+
+    final corpo = GoogleFonts.nunitoTextTheme(base.textTheme).apply(
+      bodyColor: AppColors.tinta,
+      displayColor: AppColors.tinta,
+    );
+
+    // Títulos manuscritos
+    final titulos = GoogleFonts.patrickHand(color: AppColors.tinta);
+
+    return base.copyWith(
+      textTheme: corpo.copyWith(
+        displayLarge: titulos.copyWith(fontSize: 40),
+        displayMedium: titulos.copyWith(fontSize: 32),
+        headlineLarge: titulos.copyWith(fontSize: 28),
+        headlineMedium: titulos.copyWith(fontSize: 24),
+        titleLarge: titulos.copyWith(fontSize: 22),
+        titleMedium: titulos.copyWith(fontSize: 18),
+      ),
+      appBarTheme: base.appBarTheme.copyWith(
+        titleTextStyle: titulos.copyWith(fontSize: 24),
+      ),
+    );
+  }
+
+  /// Fonte pixel usada apenas no contexto do bichinho.
+  static TextStyle pixel({double fontSize = 14, Color color = AppColors.tinta}) =>
+      GoogleFonts.vt323(fontSize: fontSize, color: color);
 }
