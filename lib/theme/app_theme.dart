@@ -56,6 +56,7 @@ class AppTheme {
       useMaterial3: true,
       brightness: Brightness.light,
       scaffoldBackgroundColor: AppColors.papel,
+      cardColor: AppColors.cartao, // Card cru rende cartão branco, não papel
       colorScheme: ColorScheme.fromSeed(
         seedColor: AppColors.laranja,
         brightness: Brightness.light,
