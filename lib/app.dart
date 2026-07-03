@@ -154,7 +154,10 @@ class FlashQuizApp extends StatelessWidget {
         ChangeNotifierProvider(create: (_) => SecoesController()),
         ChangeNotifierProvider(create: (_) => TrilhaController()),
         ChangeNotifierProvider(create: (_) => FlashcardController()),
-        Provider<AudioService>(create: (_) => AudioService()..carregarPreferencias()),
+        Provider<AudioService>(
+          create: (_) => AudioService()..carregarPreferencias(),
+          dispose: (_, service) => service.dispose(),
+        ),
       ],
       child: MaterialApp.router(
         title: 'FlashQuiz',

@@ -1,6 +1,7 @@
 // lib/services/audio_service.dart
 // Sons de papel/pixel + haptics, com toggles persistidos em config.
 import 'package:audioplayers/audioplayers.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 import '../repositories/config_repository.dart';
 import 'metrica_service.dart';
@@ -25,9 +26,11 @@ class AudioService {
   final ConfigRepository _config;
   final MetricaService _metrica;
 
-  // Lazy: evita MissingPluginException em testes unit que não tocam som
-  AudioPlayer? _playerInstance;
-  AudioPlayer get _player => _playerInstance ??= AudioPlayer();
+  // 1 player por som: burst de sons (ex.: fanfarra + confete) não se cortam.
+  // Lazy: evita MissingPluginException em testes unit que não tocam som.
+  final Map<Som, AudioPlayer> _players = {};
+  AudioPlayer _playerDe(Som s) =>
+      _players[s] ??= AudioPlayer()..setPlayerMode(PlayerMode.lowLatency);
 
   bool _somAtivo = true;
   bool _hapticsAtivo = true;
@@ -59,10 +62,19 @@ class AudioService {
   Future<void> tocar(Som som) async {
     if (!_somAtivo) return;
     try {
-      await _player.play(AssetSource('sounds/${som.arquivo}'));
-    } catch (_) {
-      // som ausente/erro de player nunca quebra o app
+      await _playerDe(som).play(AssetSource('sounds/${som.arquivo}'));
+    } catch (e) {
+      // som ausente/erro de player nunca quebra o app — só telemetria dev
+      debugPrint('som falhou: ${som.arquivo} — $e');
     }
+  }
+
+  // Libera todos os players criados (chamado pelo Provider no dispose)
+  Future<void> dispose() async {
+    for (final player in _players.values) {
+      await player.dispose();
+    }
+    _players.clear();
   }
 
   void vibrar(Vibracao v) {
