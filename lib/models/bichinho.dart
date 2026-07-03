@@ -1,5 +1,13 @@
 // lib/models/bichinho.dart
+
+/// Humor do bichinho — calculado pela inatividade no tema (repository) e
+/// consumido pela UI (sprite). Vive no model pra não acoplar camadas.
+enum HumorBichinho { feliz, neutro, comFome, dormindo }
+
 class Bichinho {
+  /// Último estágio (lendário) — não evolui além disso.
+  static const int estagioMax = 4;
+
   final int id;
   final int temaId;
   final int especie;
@@ -24,7 +32,7 @@ class Bichinho {
 
   static const nomesEstagios = ['Ovo', 'Filhote', 'Jovem', 'Adulto', 'Lendário'];
   String get nomeEstagio => nomesEstagios[estagio];
-  bool get lendario => estagio == 4;
+  bool get lendario => estagio == estagioMax;
 }
 
 /// Resultado de alimentar — a UI usa `evoluiu` pra disparar a animação.

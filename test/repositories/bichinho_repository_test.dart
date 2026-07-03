@@ -2,8 +2,8 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:sqflite_common_ffi/sqflite_ffi.dart';
 import 'package:flashquiz/db/database_helper.dart';
+import 'package:flashquiz/models/bichinho.dart';
 import 'package:flashquiz/repositories/bichinho_repository.dart';
-import 'package:flashquiz/widgets/bichinho/bichinho_sprite.dart';
 
 void main() {
   setUpAll(() {
@@ -86,5 +86,41 @@ void main() {
     // evento hoje = feliz
     await db.insert('eventos', {'evento': 'card_avaliado', 'tema': 'CFC'});
     expect(await repo.humor(temaId), HumorBichinho.feliz);
+  });
+
+  test('humor com evento retrodatado: 1 dia = neutro, 3 dias = comFome, 10 dias = dormindo', () async {
+    final temaId = await criarTema();
+    final repo = BichinhoRepository();
+    await repo.obterOuCriar(temaId);
+    final db = await DatabaseHelper().banco;
+
+    // último estudo há 10 dias = dormindo
+    await db.rawInsert(
+      "INSERT INTO eventos (evento, tema, criado_em) VALUES (?, ?, datetime('now', '-10 days'))",
+      ['card_avaliado', 'CFC'],
+    );
+    expect(await repo.humor(temaId), HumorBichinho.dormindo);
+
+    // evento mais recente há 3 dias = comFome
+    await db.rawInsert(
+      "INSERT INTO eventos (evento, tema, criado_em) VALUES (?, ?, datetime('now', '-3 days'))",
+      ['card_avaliado', 'CFC'],
+    );
+    expect(await repo.humor(temaId), HumorBichinho.comFome);
+
+    // evento mais recente há 1 dia = neutro
+    await db.rawInsert(
+      "INSERT INTO eventos (evento, tema, criado_em) VALUES (?, ?, datetime('now', '-1 day'))",
+      ['card_avaliado', 'CFC'],
+    );
+    expect(await repo.humor(temaId), HumorBichinho.neutro);
+  });
+
+  test('proximoThreshold retorna threshold do seed e null quando lendário', () async {
+    final repo = BichinhoRepository();
+    // força inicialização do banco (configs seedadas)
+    await DatabaseHelper().banco;
+    expect(await repo.proximoThreshold(0), 50);
+    expect(await repo.proximoThreshold(Bichinho.estagioMax), isNull);
   });
 }

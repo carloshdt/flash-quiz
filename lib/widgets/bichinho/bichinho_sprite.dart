@@ -2,10 +2,8 @@
 // Renderiza uma matriz pixel via CustomPainter, com bounce idle opcional e humor.
 import 'dart:async';
 import 'package:flutter/material.dart';
+import '../../models/bichinho.dart';
 import 'sprites.dart';
-
-/// Humor do bichinho — muda opacidade/efeitos, não o sprite inteiro.
-enum HumorBichinho { feliz, neutro, comFome, dormindo }
 
 class BichinhoSprite extends StatefulWidget {
   final int temaId;

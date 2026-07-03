@@ -3,7 +3,6 @@
 // Streak lido de perfil.streak_atual (>0 = ativo). Config define valores.
 import '../db/database_helper.dart';
 import '../models/bichinho.dart';
-import '../widgets/bichinho/bichinho_sprite.dart';
 import 'config_repository.dart';
 
 class BichinhoRepository {
@@ -15,6 +14,10 @@ class BichinhoRepository {
         _config = config ?? ConfigRepository();
 
   static const int numEspecies = 3;
+
+  /// Padrões dos thresholds de evolução — espelho dos seeds da migration v5.
+  /// Evita que config faltando (padrão implícito 0) vire lendário instantâneo.
+  static const _thresholdsPadrao = [50, 200, 500, 1000];
 
   Future<BichinhoCriacao> obterOuCriar(int temaId) async {
     final banco = await _db.banco;
@@ -62,8 +65,11 @@ class BichinhoRepository {
 
   /// Threshold de energia pro próximo estágio (null se lendário).
   Future<int?> proximoThreshold(int estagio) async {
-    if (estagio >= 4) return null;
-    return _config.getValorInt('bichinho_threshold_${estagio + 1}');
+    if (estagio >= Bichinho.estagioMax) return null;
+    return _config.getValorInt(
+      'bichinho_threshold_${estagio + 1}',
+      padrao: _thresholdsPadrao[estagio],
+    );
   }
 
   /// Humor calculado da última atividade registrada em eventos pro tema.
@@ -103,8 +109,11 @@ class BichinhoRepository {
   /// Maior estágio cujo threshold foi atingido pela energia acumulada.
   Future<int> _estagioPara(int energia) async {
     var estagio = 0;
-    for (var i = 1; i <= 4; i++) {
-      final t = await _config.getValorInt('bichinho_threshold_$i');
+    for (var i = 1; i <= Bichinho.estagioMax; i++) {
+      final t = await _config.getValorInt(
+        'bichinho_threshold_$i',
+        padrao: _thresholdsPadrao[i - 1],
+      );
       if (energia >= t) estagio = i;
     }
     return estagio;

@@ -1,6 +1,7 @@
 // test/widgets/sprites_test.dart
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:flashquiz/models/bichinho.dart';
 import 'package:flashquiz/widgets/bichinho/sprites.dart';
 import 'package:flashquiz/widgets/bichinho/bichinho_sprite.dart';
 
