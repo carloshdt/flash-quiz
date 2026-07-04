@@ -155,7 +155,6 @@ class _SecoesScreenState extends State<SecoesScreen> with RouteAware {
                         : 'Tudo em dia',
                     cor: AppColors.postItAzul,
                     angulo: 1,
-                    desabilitado: false,
                     onTap: () => _abrirModo(context, '/revisao'),
                   ),
                   const SizedBox(height: 10),
@@ -167,7 +166,6 @@ class _SecoesScreenState extends State<SecoesScreen> with RouteAware {
                         : 'Responda até errar ${ctrl.maratonaMaxErros}',
                     cor: AppColors.postItVerde,
                     angulo: -1,
-                    desabilitado: false,
                     onTap: () => _abrirModo(context, '/maratona'),
                   ),
                   const SizedBox(height: 20),
@@ -294,7 +292,7 @@ class _ModoPostIt extends StatelessWidget {
     required this.subtitulo,
     required this.cor,
     required this.angulo,
-    required this.desabilitado,
+    this.desabilitado = false,
     required this.onTap,
   });
 
