@@ -3,6 +3,9 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 import '../../controllers/trilha_controller.dart';
+import '../../theme/app_theme.dart';
+import '../../widgets/papel/barra_papel.dart';
+import '../../widgets/papel/fundo_papel.dart';
 import 'widgets/no_fase_widget.dart';
 import 'widgets/no_quiz_widget.dart';
 import 'widgets/bottom_sheet_fase.dart';
@@ -69,6 +72,7 @@ class _TrilhaScreenState extends State<TrilhaScreen> {
   @override
   Widget build(BuildContext context) {
     final ctrl = context.watch<TrilhaController>();
+    final acento = AppColors.accentFor(widget.temaId);
     final totalFases = ctrl.itens.where((i) => !i.ehQuiz).length;
     final fasesCompletas = ctrl.itens.where((i) => !i.ehQuiz && i.concluido).length;
 
@@ -81,36 +85,42 @@ class _TrilhaScreenState extends State<TrilhaScreen> {
     final nodeSizeQuiz = rowHeight * 0.38;
 
     return Scaffold(
-      backgroundColor: const Color(0xFF151C35),
+      backgroundColor: AppColors.papel,
       appBar: AppBar(
-        backgroundColor: const Color(0xFF1A2F6E),
+        backgroundColor: AppColors.papel,
         elevation: 0,
         title: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(widget.nomeTema,
-                style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 14)),
-            Text(widget.nomeSecao,
-                style: const TextStyle(fontSize: 11, color: Color(0xFF90CAF9))),
+            Text(
+              widget.nomeTema,
+              style: Theme.of(context)
+                  .textTheme
+                  .titleMedium
+                  ?.copyWith(color: AppColors.tinta),
+            ),
+            Text(
+              widget.nomeSecao,
+              style: const TextStyle(fontSize: 11, color: AppColors.tintaSuave),
+            ),
           ],
         ),
         bottom: PreferredSize(
           preferredSize: const Size.fromHeight(14),
           child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
-            child: LinearProgressIndicator(
-              value: totalFases > 0 ? fasesCompletas / totalFases : 0,
-              backgroundColor: Colors.white24,
-              valueColor: const AlwaysStoppedAnimation(Colors.white),
-              minHeight: 5,
-              borderRadius: BorderRadius.circular(3),
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+            child: BarraPapel(
+              totalFases > 0 ? fasesCompletas / totalFases : 0,
+              acento,
+              altura: 8,
             ),
           ),
         ),
       ),
-      body: ctrl.carregando
-          ? const Center(child: CircularProgressIndicator(color: Color(0xFF7C4DFF)))
-          : SafeArea(
+      body: FundoPapel(
+        child: ctrl.carregando
+            ? const Center(child: CircularProgressIndicator(color: AppColors.laranja))
+            : SafeArea(
         top: false,
         child: CustomScrollView(
         reverse: true,
@@ -143,9 +153,7 @@ class _TrilhaScreenState extends State<TrilhaScreen> {
                                     yInicio: rowHeight - nodeSize, // topo do nó (nó fica embaixo)
                                     xFim: screenWidth * nextPosH,
                                     yFim: 0, // topo do widget = fundo do próximo item
-                                    cor: item.concluido
-                                        ? const Color(0xFF7C4DFF)
-                                        : const Color(0xFF3A3A5A),
+                                    cor: AppColors.grao,
                                   ),
                                 ),
                               ),
@@ -165,8 +173,8 @@ class _TrilhaScreenState extends State<TrilhaScreen> {
                                     style: TextStyle(
                                       fontSize: 11,
                                       color: item.desbloqueado
-                                          ? const Color(0xFFE0E0E0)
-                                          : const Color(0xFF555555),
+                                          ? AppColors.tinta
+                                          : AppColors.tintaSuave,
                                       fontWeight: FontWeight.w700,
                                     ),
                                     textAlign: TextAlign.center,
@@ -202,10 +210,13 @@ class _TrilhaScreenState extends State<TrilhaScreen> {
         ],
         ),
       ),
+      ),
     );
   }
 }
 
+/// Conector do zigzag pintado como costura: segmentos tracejados (traço 8, gap 6)
+/// extraídos ao longo da curva entre dois nós — mesmo padrão do `_CosturaPainter`.
 class _ConectorPainter extends CustomPainter {
   final double xInicio;
   final double yInicio;
@@ -225,7 +236,7 @@ class _ConectorPainter extends CustomPainter {
   void paint(Canvas canvas, Size size) {
     final paint = Paint()
       ..color = cor
-      ..strokeWidth = 5
+      ..strokeWidth = 3
       ..strokeCap = StrokeCap.round
       ..style = PaintingStyle.stroke;
 
@@ -235,7 +246,16 @@ class _ConectorPainter extends CustomPainter {
       ..moveTo(xInicio, yInicio)
       ..cubicTo(xInicio, mid, xFim, mid, xFim, yFim);
 
-    canvas.drawPath(path, paint);
+    // Tracejado tipo costura ao longo da curva
+    const dash = 8.0, gap = 6.0;
+    for (final metric in path.computeMetrics()) {
+      double distancia = 0;
+      while (distancia < metric.length) {
+        final fim = (distancia + dash).clamp(0.0, metric.length);
+        canvas.drawPath(metric.extractPath(distancia, fim), paint);
+        distancia += dash + gap;
+      }
+    }
   }
 
   @override

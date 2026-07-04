@@ -1,6 +1,9 @@
 // lib/screens/trilha/widgets/bottom_sheet_fase.dart
 import 'package:flutter/material.dart';
 import '../../../controllers/trilha_controller.dart';
+import '../../../theme/app_theme.dart';
+import '../../../widgets/papel/barra_papel.dart';
+import '../../../widgets/papel/botao_papel.dart';
 
 class BottomSheetFase extends StatelessWidget {
   final ItemTrilha item;
@@ -13,7 +16,7 @@ class BottomSheetFase extends StatelessWidget {
 
     return Container(
       decoration: const BoxDecoration(
-        color: Color(0xFF1C2040),
+        color: AppColors.papel,
         borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
       ),
       padding: EdgeInsets.fromLTRB(16, 12, 16, 24 + MediaQuery.of(context).padding.bottom),
@@ -25,7 +28,7 @@ class BottomSheetFase extends StatelessWidget {
             width: 32,
             height: 3,
             decoration: BoxDecoration(
-              color: const Color(0xFF444444),
+              color: AppColors.grao,
               borderRadius: BorderRadius.circular(2),
             ),
           ),
@@ -36,7 +39,10 @@ class BottomSheetFase extends StatelessWidget {
             alignment: Alignment.centerLeft,
             child: Text(
               item.fase.nome,
-              style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w800, color: Colors.white),
+              style: Theme.of(context)
+                  .textTheme
+                  .titleLarge
+                  ?.copyWith(color: AppColors.tinta),
             ),
           ),
           const SizedBox(height: 12),
@@ -47,18 +53,10 @@ class BottomSheetFase extends StatelessWidget {
             children: [
               Text(
                 '$percentual% dos cards vistos',
-                style: const TextStyle(fontSize: 11, color: Color(0xFF90CAF9)),
+                style: const TextStyle(fontSize: 11, color: AppColors.tintaSuave),
               ),
               const SizedBox(height: 6),
-              ClipRRect(
-                borderRadius: BorderRadius.circular(4),
-                child: LinearProgressIndicator(
-                  value: item.percentualVisto.clamp(0.0, 1.0),
-                  backgroundColor: const Color(0xFF1A2060),
-                  valueColor: const AlwaysStoppedAnimation(Color(0xFF7C4DFF)),
-                  minHeight: 6,
-                ),
-              ),
+              BarraPapel(item.percentualVisto, AppColors.laranja, altura: 8),
             ],
           ),
           const SizedBox(height: 16),
@@ -66,19 +64,16 @@ class BottomSheetFase extends StatelessWidget {
           // Botão iniciar ou continuar
           SizedBox(
             width: double.infinity,
-            child: ElevatedButton(
-              style: ElevatedButton.styleFrom(
-                backgroundColor: const Color(0xFF7C4DFF),
-                padding: const EdgeInsets.symmetric(vertical: 14),
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-              ),
+            child: BotaoPapel(
+              cor: AppColors.verde,
               onPressed: () {
                 Navigator.pop(context);
                 onIniciar();
               },
-              child: Text(
-                item.cardsVistos > 0 ? '▶ Continuar Flashcards' : '▶ Iniciar Flashcards',
-                style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 14, color: Colors.white),
+              child: Center(
+                child: Text(
+                  item.cardsVistos > 0 ? '▶ Continuar Flashcards' : '▶ Iniciar Flashcards',
+                ),
               ),
             ),
           ),

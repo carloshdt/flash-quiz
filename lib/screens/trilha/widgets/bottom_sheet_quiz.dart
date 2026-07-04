@@ -2,6 +2,8 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import '../../../controllers/trilha_controller.dart';
+import '../../../theme/app_theme.dart';
+import '../../../widgets/papel/botao_papel.dart';
 
 class BottomSheetQuiz extends StatelessWidget {
   final ItemTrilha item;
@@ -16,7 +18,7 @@ class BottomSheetQuiz extends StatelessWidget {
         Text(icone, style: const TextStyle(fontSize: 13)),
         const SizedBox(width: 8),
         Expanded(
-          child: Text(texto, style: const TextStyle(fontSize: 11, color: Color(0xFFB0BEC5))),
+          child: Text(texto, style: const TextStyle(fontSize: 11, color: AppColors.tintaSuave)),
         ),
       ],
     ),
@@ -25,10 +27,11 @@ class BottomSheetQuiz extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final melhor = item.melhorTentativa;
+    final temResultado = melhor != null && melhor.concluido;
 
     return Container(
       decoration: const BoxDecoration(
-        color: Color(0xFF1C2040),
+        color: AppColors.papel,
         borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
       ),
       padding: EdgeInsets.fromLTRB(16, 12, 16, 24 + MediaQuery.of(context).padding.bottom),
@@ -40,7 +43,7 @@ class BottomSheetQuiz extends StatelessWidget {
             width: 32,
             height: 3,
             decoration: BoxDecoration(
-              color: const Color(0xFF444444),
+              color: AppColors.grao,
               borderRadius: BorderRadius.circular(2),
             ),
           ),
@@ -53,7 +56,7 @@ class BottomSheetQuiz extends StatelessWidget {
                 width: 44,
                 height: 44,
                 decoration: BoxDecoration(
-                  color: const Color(0xFF00897B),
+                  color: AppColors.verde,
                   borderRadius: BorderRadius.circular(10),
                 ),
                 child: const Center(child: Text('📝', style: TextStyle(fontSize: 22))),
@@ -64,9 +67,13 @@ class BottomSheetQuiz extends StatelessWidget {
                 children: [
                   Text(
                     'Quiz — ${item.fase.nome}',
-                    style: const TextStyle(fontWeight: FontWeight.w800, color: Colors.white, fontSize: 14),
+                    style: Theme.of(context)
+                        .textTheme
+                        .titleMedium
+                        ?.copyWith(color: AppColors.tinta),
                   ),
-                  const Text('Fase de avaliação', style: TextStyle(fontSize: 10, color: Color(0xFF80CBC4))),
+                  const Text('Fase de avaliação',
+                      style: TextStyle(fontSize: 10, color: AppColors.tintaSuave)),
                 ],
               ),
             ],
@@ -77,23 +84,23 @@ class BottomSheetQuiz extends StatelessWidget {
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
             decoration: BoxDecoration(
-              color: const Color(0xFF1C2448),
+              color: AppColors.cartao,
+              border: Border.all(color: AppColors.grao),
               borderRadius: BorderRadius.circular(8),
             ),
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                const Text('Melhor resultado', style: TextStyle(fontSize: 11, color: Color(0xFF90CAF9))),
+                const Text('Melhor resultado',
+                    style: TextStyle(fontSize: 11, color: AppColors.tintaSuave)),
                 Text(
-                  melhor != null && melhor.concluido
+                  temResultado
                       ? '${'★' * melhor.estrelas}${'☆' * (5 - melhor.estrelas)} ${melhor.pontuacao}pts'
                       : 'Nenhum resultado ainda',
                   style: TextStyle(
                     fontSize: 11,
                     fontWeight: FontWeight.w700,
-                    color: melhor != null && melhor.concluido
-                        ? const Color(0xFFF6C90E)
-                        : const Color(0xFF546E7A),
+                    color: temResultado ? AppColors.tinta : AppColors.tintaSuave,
                   ),
                 ),
               ],
@@ -112,12 +119,8 @@ class BottomSheetQuiz extends StatelessWidget {
           // Botão iniciar quiz
           SizedBox(
             width: double.infinity,
-            child: ElevatedButton(
-              style: ElevatedButton.styleFrom(
-                backgroundColor: const Color(0xFF00897B),
-                padding: const EdgeInsets.symmetric(vertical: 14),
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-              ),
+            child: BotaoPapel(
+              cor: AppColors.verde,
               onPressed: () {
                 Navigator.pop(context);
                 context.push(
@@ -126,10 +129,7 @@ class BottomSheetQuiz extends StatelessWidget {
                   '&nomeTema=${Uri.encodeComponent(nomeTema)}',
                 );
               },
-              child: const Text(
-                '▶ Iniciar Quiz',
-                style: TextStyle(fontWeight: FontWeight.w800, fontSize: 14, color: Colors.white),
-              ),
+              child: const Center(child: Text('▶ Iniciar Quiz')),
             ),
           ),
         ],

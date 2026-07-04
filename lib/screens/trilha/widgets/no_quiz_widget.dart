@@ -1,6 +1,7 @@
 // lib/screens/trilha/widgets/no_quiz_widget.dart
 import 'package:flutter/material.dart';
 import '../../../controllers/trilha_controller.dart';
+import '../../../theme/app_theme.dart';
 
 class NoQuizWidget extends StatelessWidget {
   final ItemTrilha item;
@@ -16,60 +17,83 @@ class NoQuizWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final desbloqueado = item.desbloqueado;
+    final iconSize = size * 0.38;
+    final raio = size * 0.2;
+
+    // Bloqueado: rascunho não preenchido — papel com borda tracejada + cadeado
+    if (!item.desbloqueado) {
+      return CustomPaint(
+        painter: _BordaTracejadaPainter(raio: raio),
+        child: SizedBox(
+          width: size,
+          height: size,
+          child: Center(
+            child: Icon(Icons.lock, color: AppColors.tintaSuave, size: iconSize),
+          ),
+        ),
+      );
+    }
+
+    // Em andamento: laranja com 📝; concluído: selo carimbado verde com ✓ branco
     final concluido = item.concluido;
-    final emojiSize = size * 0.38;
-    final badgeSize = size * 0.27;
 
     return GestureDetector(
-      onTap: desbloqueado ? onTap : null,
-      child: Stack(
-        clipBehavior: Clip.none,
-        children: [
-          Opacity(
-            opacity: desbloqueado ? 1.0 : 0.5,
-            child: Container(
-              width: size,
-              height: size,
-              decoration: BoxDecoration(
-                color: concluido ? const Color(0xFF00897B) : const Color(0xFF1A2A28),
-                borderRadius: BorderRadius.circular(size * 0.2),
-                border: Border.all(
-                  color: concluido ? const Color(0xFF4DB6AC) : const Color(0xFF2A3A38),
-                  width: 2,
-                ),
-              ),
-              child: Center(
-                child: desbloqueado
-                    ? Text('📝', style: TextStyle(fontSize: emojiSize))
-                    : Icon(Icons.lock, color: const Color(0xFF2A3A38), size: emojiSize),
-              ),
-            ),
-          ),
-          if (concluido)
-            Positioned(
-              bottom: -2,
-              right: -2,
-              child: Container(
-                width: badgeSize,
-                height: badgeSize,
-                decoration: const BoxDecoration(
-                  color: Color(0xFFF6C90E),
-                  shape: BoxShape.circle,
-                ),
-                child: Center(
-                  child: Text('✓',
-                    style: TextStyle(
-                      fontSize: badgeSize * 0.55,
-                      color: Colors.black,
-                      fontWeight: FontWeight.w900,
-                    ),
-                  ),
-                ),
-              ),
-            ),
-        ],
+      onTap: onTap,
+      child: Container(
+        width: size,
+        height: size,
+        decoration: BoxDecoration(
+          color: concluido ? AppColors.verde : AppColors.laranja,
+          borderRadius: BorderRadius.circular(raio),
+          boxShadow: const [
+            BoxShadow(color: Color(0x40000000), offset: Offset(2, 2), blurRadius: 0),
+          ],
+        ),
+        child: Center(
+          child: concluido
+              ? Icon(Icons.check, color: Colors.white, size: iconSize)
+              : Text('📝', style: TextStyle(fontSize: iconSize)),
+        ),
       ),
     );
   }
+}
+
+/// Retângulo arredondado com fundo papel e borda tracejada cinza (traço 8, gap 6)
+/// — nó de quiz bloqueado.
+class _BordaTracejadaPainter extends CustomPainter {
+  final double raio;
+  const _BordaTracejadaPainter({required this.raio});
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final rrect = RRect.fromRectAndRadius(
+      const Offset(1, 1) & Size(size.width - 2, size.height - 2),
+      Radius.circular(raio),
+    );
+
+    // Fundo papel preenchido
+    canvas.drawRRect(rrect, Paint()..color = AppColors.papel);
+
+    // Borda tracejada ao longo do contorno
+    final paint = Paint()
+      ..color = AppColors.grao
+      ..strokeWidth = 2
+      ..strokeCap = StrokeCap.round
+      ..style = PaintingStyle.stroke;
+
+    final path = Path()..addRRect(rrect);
+    const dash = 8.0, gap = 6.0;
+    for (final metric in path.computeMetrics()) {
+      double distancia = 0;
+      while (distancia < metric.length) {
+        final fim = (distancia + dash).clamp(0.0, metric.length);
+        canvas.drawPath(metric.extractPath(distancia, fim), paint);
+        distancia += dash + gap;
+      }
+    }
+  }
+
+  @override
+  bool shouldRepaint(covariant _BordaTracejadaPainter old) => old.raio != raio;
 }

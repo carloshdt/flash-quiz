@@ -9,6 +9,7 @@ import '../../services/metrica_service.dart';
 import '../../theme/app_theme.dart';
 import '../../widgets/bichinho/bichinho_popup.dart';
 import '../../widgets/bichinho/bichinho_widget.dart';
+import '../../widgets/papel/barra_papel.dart';
 import '../../widgets/papel/entrada_cascata.dart';
 import '../../widgets/papel/fundo_papel.dart';
 import '../../widgets/papel/papel_card.dart';
@@ -122,7 +123,7 @@ class _SecoesScreenState extends State<SecoesScreen> with RouteAware {
                           ],
                         ),
                         const SizedBox(height: 6),
-                        _BarraPapel(valor: ctrl.progressoGeral, cor: acento, altura: 10),
+                        BarraPapel(ctrl.progressoGeral, acento, altura: 10),
                       ],
                     ),
                   ),
@@ -197,34 +198,6 @@ class _SecoesScreenState extends State<SecoesScreen> with RouteAware {
   }
 }
 
-/// Barra de progresso estilo papel: borda de tinta com preenchimento no acento.
-class _BarraPapel extends StatelessWidget {
-  final double valor;
-  final Color cor;
-  final double altura;
-
-  const _BarraPapel({required this.valor, required this.cor, this.altura = 8});
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      height: altura,
-      decoration: BoxDecoration(
-        border: Border.all(color: AppColors.tinta, width: 1.5),
-        borderRadius: BorderRadius.circular(3),
-      ),
-      child: ClipRRect(
-        borderRadius: BorderRadius.circular(1.5),
-        child: FractionallySizedBox(
-          alignment: Alignment.centerLeft,
-          widthFactor: valor.clamp(0.0, 1.0),
-          child: Container(color: cor),
-        ),
-      ),
-    );
-  }
-}
-
 class _SecaoCard extends StatelessWidget {
   final Secao secao;
   final bool destaque;
@@ -264,7 +237,7 @@ class _SecaoCard extends StatelessWidget {
               ],
             ),
             const SizedBox(height: 8),
-            _BarraPapel(valor: percentual, cor: acento, altura: 8),
+            BarraPapel(percentual, acento, altura: 8),
             const SizedBox(height: 2),
             Text(
               '${(percentual * 100).round()}%',
