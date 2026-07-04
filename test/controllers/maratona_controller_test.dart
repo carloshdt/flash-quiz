@@ -112,6 +112,10 @@ void main() {
     final resultado = await ctrl.concluir();
     expect(resultado.score, 2);
     expect(resultado.recordeBatido, isTrue);
+
+    // Bichinho alimentado com a energia de modo (10, sem streak ativo)
+    expect(ctrl.ultimoAlimentar, isNotNull);
+    expect(ctrl.ultimoAlimentar!.energiaGanha, 10);
     ctrl.dispose();
   });
 }

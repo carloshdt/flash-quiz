@@ -36,11 +36,19 @@ class Bichinho {
 }
 
 /// Resultado de alimentar — a UI usa `evoluiu` pra disparar a animação.
+/// `nasceuAgora` = o obterOuCriar interno criou o bichinho nesse alimentar
+/// (o BichinhoService usa pra disparar a métrica bichinho_nasceu).
 class ResultadoAlimentar {
   final Bichinho bichinho;
   final int energiaGanha;
   final bool evoluiu;
-  const ResultadoAlimentar({required this.bichinho, required this.energiaGanha, required this.evoluiu});
+  final bool nasceuAgora;
+  const ResultadoAlimentar({
+    required this.bichinho,
+    required this.energiaGanha,
+    required this.evoluiu,
+    this.nasceuAgora = false,
+  });
 }
 
 /// Resultado de obterOuCriar — `criado` = ovo acabou de nascer (dispara métrica bichinho_nasceu).

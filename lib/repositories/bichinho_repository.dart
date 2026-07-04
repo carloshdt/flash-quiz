@@ -37,9 +37,11 @@ class BichinhoRepository {
   }
 
   /// Soma energia (com multiplicador de streak) e promove estágio se cruzar threshold.
+  /// `nasceuAgora` no resultado = o bichinho foi criado nesse alimentar.
   Future<ResultadoAlimentar> alimentar(int temaId, int energiaBase) async {
     final banco = await _db.banco;
-    final atual = (await obterOuCriar(temaId)).bichinho;
+    final criacao = await obterOuCriar(temaId);
+    final atual = criacao.bichinho;
 
     final mult = await _multiplicadorStreak();
     final ganho = (energiaBase * mult).floor();
@@ -60,7 +62,12 @@ class BichinhoRepository {
     );
 
     final atualizado = (await obterOuCriar(temaId)).bichinho;
-    return ResultadoAlimentar(bichinho: atualizado, energiaGanha: ganho, evoluiu: evoluiu);
+    return ResultadoAlimentar(
+      bichinho: atualizado,
+      energiaGanha: ganho,
+      evoluiu: evoluiu,
+      nasceuAgora: criacao.criado,
+    );
   }
 
   /// Threshold de energia pro próximo estágio (null se lendário).

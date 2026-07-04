@@ -3,11 +3,11 @@ import 'dart:async';
 import 'package:flutter/foundation.dart';
 import '../models/bichinho.dart';
 import '../models/card_model.dart';
-import '../repositories/bichinho_repository.dart';
 import '../repositories/card_repository.dart';
 import '../repositories/config_repository.dart';
 import '../repositories/quiz_repository.dart';
 import '../repositories/tema_repository.dart';
+import '../services/bichinho_service.dart';
 import '../services/metrica_service.dart';
 
 enum EstadoQuestao { aguardando, selecionada, tempoEsgotado }
@@ -52,8 +52,8 @@ class QuizController extends ChangeNotifier {
   final CardRepository _cardRepo;
   final ConfigRepository _configRepo;
   final QuizRepository _quizRepo;
-  final BichinhoRepository _bichinhoRepo;
   final TemaRepository _temaRepo;
+  final BichinhoService _bichinhoService;
   final MetricaService _metrica;
 
   // Estado da sessão
@@ -90,14 +90,14 @@ class QuizController extends ChangeNotifier {
     CardRepository? cardRepo,
     ConfigRepository? configRepo,
     QuizRepository? quizRepo,
-    BichinhoRepository? bichinhoRepo,
     TemaRepository? temaRepo,
+    BichinhoService? bichinhoService,
     MetricaService? metrica,
   })  : _cardRepo = cardRepo ?? CardRepository(),
         _configRepo = configRepo ?? ConfigRepository(),
         _quizRepo = quizRepo ?? QuizRepository(),
-        _bichinhoRepo = bichinhoRepo ?? BichinhoRepository(),
         _temaRepo = temaRepo ?? TemaRepository(),
+        _bichinhoService = bichinhoService ?? BichinhoService(),
         _metrica = metrica ?? MetricaService();
 
   // Getters
@@ -130,14 +130,7 @@ class QuizController extends ChangeNotifier {
         await _configRepo.getValorInt('quiz_num_questoes', padrao: 10);
 
     // Resolve o id do tema pelo nome — necessário pro bichinho (sem SQL aqui).
-    final temas = await _temaRepo.getTemas();
-    _temaId = null;
-    for (final t in temas) {
-      if (t.nome == novoNomeTema) {
-        _temaId = t.id;
-        break;
-      }
-    }
+    _temaId = (await _temaRepo.getTemaPorNome(novoNomeTema))?.id;
 
     final todos = await _cardRepo.getCardsPorFase(faseId);
     todos.shuffle();
@@ -282,7 +275,12 @@ class QuizController extends ChangeNotifier {
       nomeTema: nomeTema,
     );
 
-    await _alimentarBichinho();
+    ultimoAlimentar = await _bichinhoService.alimentarComMetricas(
+      temaId: _temaId,
+      nomeTema: nomeTema,
+      chaveEnergia: 'bichinho_energia_quiz',
+      padrao: 15,
+    );
 
     return QuizResultado(
       nota: nota,
@@ -305,21 +303,6 @@ class QuizController extends ChangeNotifier {
       tentativaN: _tentativaNumero,
       nomeTema: nomeTema,
     );
-  }
-
-  // Alimenta o bichinho do tema com a energia do quiz concluído (config).
-  Future<void> _alimentarBichinho() async {
-    final temaId = _temaId;
-    if (temaId == null) return;
-
-    final energia =
-        await _configRepo.getValorInt('bichinho_energia_quiz', padrao: 15);
-    ultimoAlimentar = await _bichinhoRepo.alimentar(temaId, energia);
-    await _metrica.bichinhoAlimentado(
-        nomeTema, ultimoAlimentar!.energiaGanha, ultimoAlimentar!.bichinho.energia);
-    if (ultimoAlimentar!.evoluiu) {
-      await _metrica.bichinhoEvoluiu(nomeTema, ultimoAlimentar!.bichinho.estagio);
-    }
   }
 
   int _calcularEstrelas(int nota) {

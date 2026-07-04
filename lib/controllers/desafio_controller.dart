@@ -3,9 +3,9 @@ import 'dart:async';
 import 'package:flutter/foundation.dart';
 import '../models/bichinho.dart';
 import '../models/card_model.dart';
-import '../repositories/bichinho_repository.dart';
 import '../repositories/config_repository.dart';
 import '../repositories/modo_repository.dart';
+import '../services/bichinho_service.dart';
 import '../services/metrica_service.dart';
 import '../services/quiz_pontuacao.dart';
 
@@ -28,7 +28,7 @@ class DesafioResultado {
 class DesafioController extends ChangeNotifier {
   final ModoRepository _modoRepo;
   final ConfigRepository _configRepo;
-  final BichinhoRepository _bichinhoRepo;
+  final BichinhoService _bichinhoService;
   final MetricaService _metrica;
 
   List<CardModel> _questoes = [];
@@ -58,11 +58,11 @@ class DesafioController extends ChangeNotifier {
   DesafioController({
     ModoRepository? modoRepo,
     ConfigRepository? configRepo,
-    BichinhoRepository? bichinhoRepo,
+    BichinhoService? bichinhoService,
     MetricaService? metrica,
   })  : _modoRepo = modoRepo ?? ModoRepository(),
         _configRepo = configRepo ?? ConfigRepository(),
-        _bichinhoRepo = bichinhoRepo ?? BichinhoRepository(),
+        _bichinhoService = bichinhoService ?? BichinhoService(),
         _metrica = metrica ?? MetricaService();
 
   CardModel? get questaoAtual =>
@@ -196,14 +196,12 @@ class DesafioController extends ChangeNotifier {
     );
 
     // Alimenta o bichinho do tema com a energia do modo concluído (config).
-    final energia =
-        await _configRepo.getValorInt('bichinho_energia_modo', padrao: 10);
-    ultimoAlimentar = await _bichinhoRepo.alimentar(temaId, energia);
-    await _metrica.bichinhoAlimentado(
-        nomeTema, ultimoAlimentar!.energiaGanha, ultimoAlimentar!.bichinho.energia);
-    if (ultimoAlimentar!.evoluiu) {
-      await _metrica.bichinhoEvoluiu(nomeTema, ultimoAlimentar!.bichinho.estagio);
-    }
+    ultimoAlimentar = await _bichinhoService.alimentarComMetricas(
+      temaId: temaId,
+      nomeTema: nomeTema,
+      chaveEnergia: 'bichinho_energia_modo',
+      padrao: 10,
+    );
 
     return DesafioResultado(
       nota: nota,
