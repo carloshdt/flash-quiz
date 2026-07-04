@@ -21,6 +21,8 @@ class AppColors {
   static const Color azul = Color(0xFF4DA6FF);    // info
   static const Color rosa = Color(0xFFFF9EBB);    // carinho
   static const Color postItLaranja = Color(0xFFFFE0B2); // post-it laranja-claro (streak)
+  static const Color postItAzul = Color(0xFFB8E0F5);    // post-it azul-claro (revisão)
+  static const Color postItVerde = Color(0xFFC8E6C9);   // post-it verde-claro (maratona)
 
   static const List<Color> _accents = [
     laranja,

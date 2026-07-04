@@ -7,6 +7,12 @@ import '../../controllers/secoes_controller.dart';
 import '../../models/secao.dart';
 import '../../services/metrica_service.dart';
 import '../../theme/app_theme.dart';
+import '../../widgets/bichinho/bichinho_popup.dart';
+import '../../widgets/bichinho/bichinho_widget.dart';
+import '../../widgets/papel/entrada_cascata.dart';
+import '../../widgets/papel/fundo_papel.dart';
+import '../../widgets/papel/papel_card.dart';
+import '../../widgets/papel/post_it.dart';
 
 class SecoesScreen extends StatefulWidget {
   final int temaId;
@@ -59,112 +65,164 @@ class _SecoesScreenState extends State<SecoesScreen> with RouteAware {
     context.push('$rota/${widget.temaId}?nomeTema=${Uri.encodeComponent(widget.nomeTema)}');
   }
 
+  void _abrirPopupBichinho(BuildContext context, SecoesController ctrl) {
+    ctrl.registrarPopupAberto();
+    mostrarBichinhoPopup(
+      context,
+      bichinho: ctrl.bichinho!,
+      humor: ctrl.humorBichinho,
+      proximoThreshold: ctrl.proximoThreshold,
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final ctrl = context.watch<SecoesController>();
+    final acento = AppColors.accentFor(widget.temaId);
 
     return Scaffold(
-      backgroundColor: AppColors.background,
+      backgroundColor: AppColors.papel,
       appBar: AppBar(
-        backgroundColor: AppColors.background,
+        backgroundColor: AppColors.papel,
         elevation: 0,
-        title: Text(widget.nomeTema, style: const TextStyle(fontWeight: FontWeight.w800)),
+        title: Text(widget.nomeTema),
       ),
-      body: ctrl.carregando
-          ? const Center(child: CircularProgressIndicator(color: AppColors.purple))
-          : ListView(
-              padding: const EdgeInsets.all(16),
-              children: [
-                // Barra de progresso geral
-                Container(
-                  padding: const EdgeInsets.all(12),
-                  decoration: BoxDecoration(
-                    color: Colors.white.withValues(alpha: 0.06),
-                    borderRadius: BorderRadius.circular(12),
-                    border: Border.all(color: Colors.white.withValues(alpha: 0.08)),
-                  ),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          const Text('Progresso geral',
-                              style: TextStyle(fontSize: 11, color: AppColors.textSecondary)),
-                          Text(
-                            '${(ctrl.progressoGeral * 100).round()}% concluído',
-                            style: const TextStyle(fontSize: 11, color: AppColors.textSecondary),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 6),
-                      ClipRRect(
-                        borderRadius: BorderRadius.circular(4),
-                        child: LinearProgressIndicator(
-                          value: ctrl.progressoGeral,
-                          backgroundColor: Colors.white.withValues(alpha: 0.08),
-                          valueColor: const AlwaysStoppedAnimation<Color>(AppColors.purple),
-                          minHeight: 6,
+      body: FundoPapel(
+        child: ctrl.carregando
+            ? const Center(child: CircularProgressIndicator(color: AppColors.laranja))
+            : ListView(
+                padding: const EdgeInsets.all(16),
+                children: [
+                  // Bichinho do tema com barra de energia
+                  if (ctrl.bichinho != null) ...[
+                    BichinhoHeader(
+                      bichinho: ctrl.bichinho!,
+                      humor: ctrl.humorBichinho,
+                      proximoThreshold: ctrl.proximoThreshold,
+                      onTap: () => _abrirPopupBichinho(context, ctrl),
+                    ),
+                    const SizedBox(height: 16),
+                  ],
+                  // Barra de progresso geral
+                  PapelCard(
+                    seed: widget.temaId,
+                    padding: const EdgeInsets.all(12),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            const Text('Progresso geral',
+                                style: TextStyle(fontSize: 11, color: AppColors.tintaSuave)),
+                            Text(
+                              '${(ctrl.progressoGeral * 100).round()}% concluído',
+                              style: const TextStyle(fontSize: 11, color: AppColors.tintaSuave),
+                            ),
+                          ],
                         ),
-                      ),
-                    ],
+                        const SizedBox(height: 6),
+                        _BarraPapel(valor: ctrl.progressoGeral, cor: acento, altura: 10),
+                      ],
+                    ),
                   ),
-                ),
-                const SizedBox(height: 16),
-                Text(
-                  'Modos de estudo',
-                  style: TextStyle(fontSize: 13, color: Colors.white.withValues(alpha: 0.4)),
-                ),
-                const SizedBox(height: 8),
-                _ModoCard(
-                  emoji: '⚡',
-                  titulo: 'Desafio Diário',
-                  subtitulo: ctrl.notaDesafioHoje != null
-                      ? '✓ Feito hoje · ${ctrl.notaDesafioHoje} pontos'
-                      : '${ctrl.desafioNumQuestoes} questões · uma vez por dia',
-                  cor: AppColors.orange,
-                  desabilitado: ctrl.notaDesafioHoje != null,
-                  onTap: () => _abrirModo(context, '/desafio'),
-                ),
-                const SizedBox(height: 8),
-                _ModoCard(
-                  emoji: '🧠',
-                  titulo: 'Revisão Inteligente',
-                  subtitulo: ctrl.cardsVencidos > 0
-                      ? '${ctrl.cardsVencidos} cards para revisar'
-                      : 'Tudo em dia',
-                  cor: AppColors.purple,
-                  desabilitado: false,
-                  onTap: () => _abrirModo(context, '/revisao'),
-                ),
-                const SizedBox(height: 8),
-                _ModoCard(
-                  emoji: '🏃',
-                  titulo: 'Maratona',
-                  subtitulo: ctrl.recordeMaratona > 0
-                      ? 'Recorde: ${ctrl.recordeMaratona} acertos'
-                      : 'Responda até errar ${ctrl.maratonaMaxErros}',
-                  cor: AppColors.teal,
-                  desabilitado: false,
-                  onTap: () => _abrirModo(context, '/maratona'),
-                ),
-                const SizedBox(height: 16),
-                Text(
-                  'Escolha uma seção',
-                  style: TextStyle(fontSize: 13, color: Colors.white.withValues(alpha: 0.4)),
-                ),
-                const SizedBox(height: 8),
-                ...ctrl.secoes.map((secao) => Padding(
-                  padding: const EdgeInsets.only(bottom: 8),
-                  child: _SecaoCard(
-                    secao: secao,
-                    destaque: secao.ordem == 0,
-                    percentual: ctrl.progressoPorSecao[secao.id] ?? 0.0,
-                    onTap: () => _navegarParaTrilha(context, secao),
+                  const SizedBox(height: 20),
+                  Text(
+                    'Modos de estudo',
+                    style: Theme.of(context)
+                        .textTheme
+                        .titleMedium
+                        ?.copyWith(color: AppColors.tintaSuave),
                   ),
-                )),
-              ],
-            ),
+                  const SizedBox(height: 8),
+                  _ModoPostIt(
+                    emoji: '⚡',
+                    titulo: 'Desafio Diário',
+                    subtitulo: ctrl.notaDesafioHoje != null
+                        ? '✓ Feito hoje · ${ctrl.notaDesafioHoje} pontos'
+                        : '${ctrl.desafioNumQuestoes} questões · uma vez por dia',
+                    cor: AppColors.amarelo,
+                    angulo: -1.5,
+                    desabilitado: ctrl.notaDesafioHoje != null,
+                    onTap: () => _abrirModo(context, '/desafio'),
+                  ),
+                  const SizedBox(height: 10),
+                  _ModoPostIt(
+                    emoji: '🧠',
+                    titulo: 'Revisão Inteligente',
+                    subtitulo: ctrl.cardsVencidos > 0
+                        ? '${ctrl.cardsVencidos} cards para revisar'
+                        : 'Tudo em dia',
+                    cor: AppColors.postItAzul,
+                    angulo: 1,
+                    desabilitado: false,
+                    onTap: () => _abrirModo(context, '/revisao'),
+                  ),
+                  const SizedBox(height: 10),
+                  _ModoPostIt(
+                    emoji: '🏃',
+                    titulo: 'Maratona',
+                    subtitulo: ctrl.recordeMaratona > 0
+                        ? 'Recorde: ${ctrl.recordeMaratona} acertos'
+                        : 'Responda até errar ${ctrl.maratonaMaxErros}',
+                    cor: AppColors.postItVerde,
+                    angulo: -1,
+                    desabilitado: false,
+                    onTap: () => _abrirModo(context, '/maratona'),
+                  ),
+                  const SizedBox(height: 20),
+                  Text(
+                    'Escolha uma seção',
+                    style: Theme.of(context)
+                        .textTheme
+                        .titleMedium
+                        ?.copyWith(color: AppColors.tintaSuave),
+                  ),
+                  const SizedBox(height: 8),
+                  ...ctrl.secoes.asMap().entries.map((entry) => EntradaCascata(
+                        index: entry.key,
+                        child: Padding(
+                          padding: const EdgeInsets.only(bottom: 12),
+                          child: _SecaoCard(
+                            secao: entry.value,
+                            destaque: entry.value.ordem == 0,
+                            percentual: ctrl.progressoPorSecao[entry.value.id] ?? 0.0,
+                            acento: acento,
+                            onTap: () => _navegarParaTrilha(context, entry.value),
+                          ),
+                        ),
+                      )),
+                ],
+              ),
+      ),
+    );
+  }
+}
+
+/// Barra de progresso estilo papel: borda de tinta com preenchimento no acento.
+class _BarraPapel extends StatelessWidget {
+  final double valor;
+  final Color cor;
+  final double altura;
+
+  const _BarraPapel({required this.valor, required this.cor, this.altura = 8});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      height: altura,
+      decoration: BoxDecoration(
+        border: Border.all(color: AppColors.tinta, width: 1.5),
+        borderRadius: BorderRadius.circular(3),
+      ),
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(1.5),
+        child: FractionallySizedBox(
+          alignment: Alignment.centerLeft,
+          widthFactor: valor.clamp(0.0, 1.0),
+          child: Container(color: cor),
+        ),
+      ),
     );
   }
 }
@@ -173,12 +231,14 @@ class _SecaoCard extends StatelessWidget {
   final Secao secao;
   final bool destaque;
   final double percentual;
+  final Color acento;
   final VoidCallback onTap;
 
   const _SecaoCard({
     required this.secao,
     required this.destaque,
     required this.percentual,
+    required this.acento,
     required this.onTap,
   });
 
@@ -186,19 +246,9 @@ class _SecaoCard extends StatelessWidget {
   Widget build(BuildContext context) {
     return GestureDetector(
       onTap: onTap,
-      child: Container(
+      child: PapelCard(
+        seed: secao.id,
         padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
-        decoration: BoxDecoration(
-          color: destaque
-              ? AppColors.headerBg.withValues(alpha: 0.8)
-              : Colors.white.withValues(alpha: 0.055),
-          borderRadius: BorderRadius.circular(14),
-          border: Border.all(
-            color: destaque
-                ? AppColors.purple.withValues(alpha: 0.4)
-                : Colors.white.withValues(alpha: 0.08),
-          ),
-        ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -209,27 +259,18 @@ class _SecaoCard extends StatelessWidget {
                 Expanded(
                   child: Text(
                     secao.nome,
-                    style: const TextStyle(
-                        fontWeight: FontWeight.w700, color: Colors.white, fontSize: 13),
+                    style: Theme.of(context).textTheme.titleMedium,
                   ),
                 ),
-                const Icon(Icons.chevron_right, color: AppColors.purple),
+                Icon(Icons.chevron_right, color: destaque ? acento : AppColors.tintaSuave),
               ],
             ),
             const SizedBox(height: 8),
-            ClipRRect(
-              borderRadius: BorderRadius.circular(3),
-              child: LinearProgressIndicator(
-                value: percentual,
-                backgroundColor: Colors.white.withValues(alpha: 0.08),
-                valueColor: const AlwaysStoppedAnimation<Color>(AppColors.purple),
-                minHeight: 4,
-              ),
-            ),
+            _BarraPapel(valor: percentual, cor: acento, altura: 8),
             const SizedBox(height: 2),
             Text(
               '${(percentual * 100).round()}%',
-              style: const TextStyle(fontSize: 9, color: AppColors.textSecondary),
+              style: const TextStyle(fontSize: 9, color: AppColors.tintaSuave),
             ),
           ],
         ),
@@ -238,19 +279,21 @@ class _SecaoCard extends StatelessWidget {
   }
 }
 
-class _ModoCard extends StatelessWidget {
+class _ModoPostIt extends StatelessWidget {
   final String emoji;
   final String titulo;
   final String subtitulo;
   final Color cor;
+  final double angulo;
   final bool desabilitado;
   final VoidCallback onTap;
 
-  const _ModoCard({
+  const _ModoPostIt({
     required this.emoji,
     required this.titulo,
     required this.subtitulo,
     required this.cor,
+    required this.angulo,
     required this.desabilitado,
     required this.onTap,
   });
@@ -261,13 +304,9 @@ class _ModoCard extends StatelessWidget {
       opacity: desabilitado ? 0.55 : 1.0,
       child: GestureDetector(
         onTap: desabilitado ? null : onTap,
-        child: Container(
-          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
-          decoration: BoxDecoration(
-            color: Colors.white.withValues(alpha: 0.055),
-            borderRadius: BorderRadius.circular(14),
-            border: Border.all(color: cor.withValues(alpha: 0.35)),
-          ),
+        child: PostIt(
+          cor: cor,
+          angulo: angulo,
           child: Row(
             children: [
               Text(emoji, style: const TextStyle(fontSize: 20)),
@@ -276,20 +315,19 @@ class _ModoCard extends StatelessWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(
-                      titulo,
-                      style: const TextStyle(
-                          fontWeight: FontWeight.w700, color: Colors.white, fontSize: 13),
-                    ),
+                    Text(titulo, style: Theme.of(context).textTheme.titleMedium),
                     const SizedBox(height: 2),
                     Text(
                       subtitulo,
-                      style: TextStyle(fontSize: 11, color: cor),
+                      style: Theme.of(context)
+                          .textTheme
+                          .bodySmall
+                          ?.copyWith(color: AppColors.tintaSuave),
                     ),
                   ],
                 ),
               ),
-              if (!desabilitado) Icon(Icons.chevron_right, color: cor),
+              if (!desabilitado) const Icon(Icons.chevron_right, color: AppColors.tinta),
             ],
           ),
         ),
