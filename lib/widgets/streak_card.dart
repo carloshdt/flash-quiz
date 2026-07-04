@@ -11,7 +11,7 @@ class StreakCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return PostIt(
-      cor: const Color(0xFFFFE0B2), // laranja-claro
+      cor: AppColors.postItLaranja,
       child: Row(
         children: [
           const Text('🔥', style: TextStyle(fontSize: 26)),

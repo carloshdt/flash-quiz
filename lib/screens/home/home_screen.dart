@@ -2,6 +2,7 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
+import '../../app.dart';
 import '../../controllers/home_controller.dart';
 import '../../theme/app_theme.dart';
 import '../../widgets/papel/entrada_cascata.dart';
@@ -11,8 +12,33 @@ import '../../widgets/streak_card.dart';
 import '../../widgets/xp_bar_widget.dart';
 import '../../widgets/tema_card_widget.dart';
 
-class HomeScreen extends StatelessWidget {
+class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
+
+  @override
+  State<HomeScreen> createState() => _HomeScreenState();
+}
+
+class _HomeScreenState extends State<HomeScreen> with RouteAware {
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    final route = ModalRoute.of(context);
+    if (route != null) routeObserver.subscribe(this, route);
+  }
+
+  @override
+  void dispose() {
+    routeObserver.unsubscribe(this);
+    super.dispose();
+  }
+
+  // Chamado quando uma rota acima desta é removida e esta volta ao topo —
+  // recarrega pra refletir XP/streak/bichinhos atualizados na sessão de estudo
+  @override
+  void didPopNext() {
+    context.read<HomeController>().carregar();
+  }
 
   int _xpProximoNivel(int nivel) => nivel * 1000;
 

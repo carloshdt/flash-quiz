@@ -47,10 +47,13 @@ class HomeController extends ChangeNotifier {
     perfil = await _perfilRepo.getPerfil();
     await _metrica.appAberto();
 
-    // Garante um bichinho por tema (cria o ovo na primeira visita)
+    // Garante um bichinho por tema desbloqueado (cria o ovo na primeira visita).
+    // Temas bloqueados ficam de fora: o card oculta o bichinho e criar o ovo
+    // poluiria a métrica bichinho_nasceu.
     _bichinhos = {};
     _humores = {};
     for (final tema in temas) {
+      if (!tema.desbloqueado) continue;
       final criacao = await _bichinhoRepo.obterOuCriar(tema.id);
       _bichinhos[tema.id] = criacao.bichinho;
       _humores[tema.id] = await _bichinhoRepo.humor(tema.id);
