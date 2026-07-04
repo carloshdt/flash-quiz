@@ -1,4 +1,5 @@
 // lib/widgets/xp_bar_widget.dart
+// Barra de XP estilo recorte: borda de tinta 2px, preenchimento amarelo.
 import 'package:flutter/material.dart';
 import '../theme/app_theme.dart';
 
@@ -24,31 +25,33 @@ class XpBarWidget extends StatelessWidget {
           children: [
             Text(
               'NÍVEL $nivel',
-              style: TextStyle(
+              style: const TextStyle(
                 fontSize: 9,
                 fontWeight: FontWeight.w800,
-                color: Colors.white.withValues(alpha: 0.35),
+                color: AppColors.tinta,
                 letterSpacing: 1.5,
               ),
             ),
             Text(
               '$xpAtual / $xpProximo XP',
-              style: TextStyle(
+              style: const TextStyle(
                 fontSize: 9,
                 fontWeight: FontWeight.w700,
-                color: Colors.white.withValues(alpha: 0.25),
+                color: AppColors.tintaSuave,
               ),
             ),
           ],
         ),
         const SizedBox(height: 5),
-        ClipRRect(
-          borderRadius: BorderRadius.circular(4),
-          child: LinearProgressIndicator(
-            value: progresso,
-            backgroundColor: Colors.white.withValues(alpha: 0.08),
-            valueColor: const AlwaysStoppedAnimation<Color>(AppColors.purple),
-            minHeight: 5,
+        Container(
+          height: 12,
+          decoration: BoxDecoration(
+            border: Border.all(color: AppColors.tinta, width: 2),
+          ),
+          child: FractionallySizedBox(
+            alignment: Alignment.centerLeft,
+            widthFactor: progresso,
+            child: Container(color: AppColors.amarelo),
           ),
         ),
       ],

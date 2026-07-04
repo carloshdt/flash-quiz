@@ -1,6 +1,8 @@
 // lib/widgets/streak_card.dart
+// Streak como post-it laranja-claro: 🔥 grande + dias em Patrick Hand.
 import 'package:flutter/material.dart';
 import '../theme/app_theme.dart';
+import 'papel/post_it.dart';
 
 class StreakCard extends StatelessWidget {
   final int streak;
@@ -8,43 +10,41 @@ class StreakCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-      decoration: BoxDecoration(
-        color: Colors.white.withValues(alpha: 0.06),
-        borderRadius: BorderRadius.circular(14),
-      ),
+    return PostIt(
+      cor: const Color(0xFFFFE0B2), // laranja-claro
       child: Row(
         children: [
-          const Text('🔥', style: TextStyle(fontSize: 22)),
+          const Text('🔥', style: TextStyle(fontSize: 26)),
           const SizedBox(width: 10),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const Text(
-                  'Sequência ativa',
-                  style: TextStyle(fontSize: 13, fontWeight: FontWeight.w800, color: Colors.white),
-                ),
                 Text(
+                  'Sequência ativa',
+                  style: Theme.of(context)
+                      .textTheme
+                      .titleMedium
+                      ?.copyWith(color: AppColors.tinta),
+                ),
+                const Text(
                   'Continue hoje!',
                   style: TextStyle(
                     fontSize: 10,
                     fontWeight: FontWeight.w600,
-                    color: Colors.white.withValues(alpha: 0.35),
+                    color: AppColors.tintaSuave,
                   ),
                 ),
               ],
             ),
           ),
           Text(
-            '$streak',
-            style: const TextStyle(
-              fontSize: 28,
-              fontWeight: FontWeight.w900,
-              color: AppColors.orange,
-              height: 1,
-            ),
+            '$streak ${streak == 1 ? 'dia' : 'dias'}',
+            style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                  color: AppColors.tinta,
+                  fontSize: 22,
+                  height: 1,
+                ),
           ),
         ],
       ),
