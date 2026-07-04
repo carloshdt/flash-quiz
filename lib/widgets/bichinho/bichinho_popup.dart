@@ -11,11 +11,13 @@ Future<void> mostrarBichinhoPopup(
   required HumorBichinho humor,
   required int? proximoThreshold,
 }) {
-  final dicas = {
-    HumorBichinho.feliz: 'Tá feliz! Continue assim.',
-    HumorBichinho.neutro: 'Estude hoje pra deixar ele feliz!',
-    HumorBichinho.comFome: 'Tá com fome! Alimente com 3 cards.',
-    HumorBichinho.dormindo: 'Dormiu de tédio... acorde ele estudando!',
+  // Switch exaustivo: humor novo no enum vira erro de compilação aqui,
+  // em vez de null-check estourando em runtime.
+  final dica = switch (humor) {
+    HumorBichinho.feliz => 'Tá feliz! Continue assim.',
+    HumorBichinho.neutro => 'Estude hoje pra deixar ele feliz!',
+    HumorBichinho.comFome => 'Tá com fome! Alimente com 3 cards.',
+    HumorBichinho.dormindo => 'Dormiu de tédio... acorde ele estudando!',
   };
 
   return showModalBottomSheet(
@@ -41,7 +43,7 @@ Future<void> mostrarBichinhoPopup(
             Text('${bichinho.energia}/$proximoThreshold energia',
                 style: AppTheme.pixel(fontSize: 18, color: AppColors.tintaSuave)),
           const SizedBox(height: 8),
-          Text(dicas[humor]!, textAlign: TextAlign.center,
+          Text(dica, textAlign: TextAlign.center,
               style: Theme.of(context).textTheme.bodyMedium),
           const SizedBox(height: 8),
         ],

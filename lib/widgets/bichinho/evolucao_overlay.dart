@@ -33,11 +33,15 @@ class _EvolucaoDialogState extends State<_EvolucaoDialog>
   void initState() {
     super.initState();
     _ctrl = AnimationController(vsync: this, duration: const Duration(milliseconds: 1800))
-      ..forward();
-    // fecha sozinho depois de 2.6s
-    Future.delayed(const Duration(milliseconds: 2600), () {
-      if (mounted) Navigator.of(context).pop();
-    });
+      ..forward().whenComplete(() {
+        // Animação acabou: segura o sprite novo por 800ms e fecha sozinho.
+        // isCurrent evita pop errado se outra rota subiu por cima no intervalo.
+        Future.delayed(const Duration(milliseconds: 800), () {
+          if (mounted && (ModalRoute.of(context)?.isCurrent ?? false)) {
+            Navigator.of(context).pop();
+          }
+        });
+      });
   }
 
   @override
