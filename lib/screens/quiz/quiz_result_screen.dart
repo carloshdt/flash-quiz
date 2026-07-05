@@ -23,8 +23,6 @@ class QuizResultScreen extends StatefulWidget {
 }
 
 class _QuizResultScreenState extends State<QuizResultScreen> {
-  bool _efeitosCarimboTocados = false; // garante som/haptic da batida 1x
-
   @override
   void initState() {
     super.initState();
@@ -37,30 +35,26 @@ class _QuizResultScreenState extends State<QuizResultScreen> {
         audio.tocar(Som.fanfarra);
         audio.vibrar(Vibracao.pesada);
       }
+      // Aprovado: evolução espera a batida do carimbo (onBatida)
     } else {
       // Reprovado: papel amassado, suave — sem punição sonora pesada
       audio.tocar(Som.papelAmassar);
+      // Bichinho evoluiu de verdade — celebração independe da nota
+      _agendarEvolucao(const Duration(milliseconds: 800));
     }
   }
 
-  // Batida do carimbo completou: som + haptic, depois evolução (se houver)
-  void _onCarimboBatida() {
-    if (_efeitosCarimboTocados || !mounted) return;
-    _efeitosCarimboTocados = true;
-    final audio = context.read<AudioService>();
-    audio.tocar(Som.carimbo);
-    audio.vibrar(Vibracao.media);
-
+  // Agenda o overlay de evolução (se o bichinho evoluiu) após um respiro
+  void _agendarEvolucao(Duration respiro) {
     final alimentar = widget.resultado.alimentar;
-    if (alimentar?.evoluiu == true) {
-      // Respiro de 500ms entre a batida e o overlay de evolução
-      Future.delayed(const Duration(milliseconds: 500), () {
-        if (!mounted) return;
-        audio.tocar(Som.pixelEvolucao);
-        audio.vibrar(Vibracao.pesada);
-        mostrarEvolucao(context, alimentar!.bichinho);
-      });
-    }
+    if (alimentar?.evoluiu != true) return;
+    Future.delayed(respiro, () {
+      if (!mounted) return;
+      final audio = context.read<AudioService>();
+      audio.tocar(Som.pixelEvolucao);
+      audio.vibrar(Vibracao.pesada);
+      mostrarEvolucao(context, alimentar!.bichinho);
+    });
   }
 
   void _refazerQuiz() {
@@ -132,7 +126,9 @@ class _QuizResultScreenState extends State<QuizResultScreen> {
                             texto: 'APROVADO',
                             cor: AppColors.verde,
                             fontSize: 32,
-                            onBatida: _onCarimboBatida,
+                            // Evolução (se houver) 500ms após a batida
+                            onBatida: () => _agendarEvolucao(
+                                const Duration(milliseconds: 500)),
                           ),
                           const SizedBox(height: 24),
                         ],

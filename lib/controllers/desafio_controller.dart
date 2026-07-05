@@ -13,15 +13,22 @@ enum EstadoQuestaoDesafio { aguardando, selecionada, tempoEsgotado }
 
 class DesafioResultado {
   final int nota;
+  final bool aprovado; // nota alta — computado onde a nota nasce
   final int tempoTotalSegundos;
   final int temaId;
   final String nomeTema;
 
+  /// Resultado de alimentar o bichinho — viaja com o resultado pois a tela
+  /// de resultado é outra rota (pushReplacement) e não enxerga o controller.
+  final ResultadoAlimentar? alimentar;
+
   DesafioResultado({
     required this.nota,
+    required this.aprovado,
     required this.tempoTotalSegundos,
     required this.temaId,
     required this.nomeTema,
+    this.alimentar,
   });
 }
 
@@ -205,9 +212,11 @@ class DesafioController extends ChangeNotifier {
 
     return DesafioResultado(
       nota: nota,
+      aprovado: nota >= 70,
       tempoTotalSegundos: tempoTotal,
       temaId: temaId,
       nomeTema: nomeTema,
+      alimentar: ultimoAlimentar,
     );
   }
 

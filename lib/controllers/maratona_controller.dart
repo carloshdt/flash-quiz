@@ -18,6 +18,10 @@ class MaratonaResultado {
   final int temaId;
   final String nomeTema;
 
+  /// Resultado de alimentar o bichinho — viaja com o resultado pois a tela
+  /// de resultado é outra rota (pushReplacement) e não enxerga o controller.
+  final ResultadoAlimentar? alimentar;
+
   MaratonaResultado({
     required this.score,
     required this.recorde,
@@ -25,6 +29,7 @@ class MaratonaResultado {
     required this.tempoTotalSegundos,
     required this.temaId,
     required this.nomeTema,
+    this.alimentar,
   });
 }
 
@@ -211,6 +216,7 @@ class MaratonaController extends ChangeNotifier {
       tempoTotalSegundos: tempoTotal,
       temaId: temaId,
       nomeTema: nomeTema,
+      alimentar: ultimoAlimentar,
     );
   }
 

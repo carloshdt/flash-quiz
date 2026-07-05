@@ -7,6 +7,7 @@ import 'package:provider/provider.dart';
 import '../../controllers/desafio_controller.dart';
 import '../../services/audio_service.dart';
 import '../../theme/app_theme.dart';
+import '../../widgets/bichinho/evolucao_overlay.dart';
 import '../../widgets/confete/confete_papel.dart';
 import '../../widgets/papel/botao_papel.dart';
 import '../../widgets/papel/carimbo_batida.dart';
@@ -22,24 +23,25 @@ class DesafioResultScreen extends StatefulWidget {
 }
 
 class _DesafioResultScreenState extends State<DesafioResultScreen> {
-  bool _efeitosCarimboTocados = false; // garante som/haptic da batida 1x
-
-  bool get _notaAlta => widget.resultado.nota >= 70;
-
   @override
   void initState() {
     super.initState();
-    if (_notaAlta) {
+    if (widget.resultado.aprovado) {
       context.read<AudioService>().tocar(Som.confete);
     }
   }
 
-  void _onCarimboBatida() {
-    if (_efeitosCarimboTocados || !mounted) return;
-    _efeitosCarimboTocados = true;
-    final audio = context.read<AudioService>();
-    audio.tocar(Som.carimbo);
-    audio.vibrar(Vibracao.media);
+  // Agenda o overlay de evolução (se o bichinho evoluiu) após um respiro
+  void _agendarEvolucao(Duration respiro) {
+    final alimentar = widget.resultado.alimentar;
+    if (alimentar?.evoluiu != true) return;
+    Future.delayed(respiro, () {
+      if (!mounted) return;
+      final audio = context.read<AudioService>();
+      audio.tocar(Som.pixelEvolucao);
+      audio.vibrar(Vibracao.pesada);
+      mostrarEvolucao(context, alimentar!.bichinho);
+    });
   }
 
   @override
@@ -83,7 +85,9 @@ class _DesafioResultScreenState extends State<DesafioResultScreen> {
                           texto: 'FEITO',
                           cor: AppColors.verde,
                           fontSize: 32,
-                          onBatida: _onCarimboBatida,
+                          // Evolução (se houver) 500ms após a batida
+                          onBatida: () => _agendarEvolucao(
+                              const Duration(milliseconds: 500)),
                         ),
                         const SizedBox(height: 24),
 
@@ -135,7 +139,8 @@ class _DesafioResultScreenState extends State<DesafioResultScreen> {
             ),
 
             // Confete de papel quando a nota é alta
-            if (_notaAlta) const Positioned.fill(child: ConfetePapel()),
+            if (widget.resultado.aprovado)
+              const Positioned.fill(child: ConfetePapel()),
           ],
         ),
       ),

@@ -7,6 +7,7 @@ import 'package:provider/provider.dart';
 import '../../controllers/maratona_controller.dart';
 import '../../services/audio_service.dart';
 import '../../theme/app_theme.dart';
+import '../../widgets/bichinho/evolucao_overlay.dart';
 import '../../widgets/confete/confete_papel.dart';
 import '../../widgets/papel/botao_papel.dart';
 import '../../widgets/papel/carimbo_batida.dart';
@@ -22,8 +23,6 @@ class MaratonaResultScreen extends StatefulWidget {
 }
 
 class _MaratonaResultScreenState extends State<MaratonaResultScreen> {
-  bool _efeitosCarimboTocados = false; // garante som/haptic da batida 1x
-
   @override
   void initState() {
     super.initState();
@@ -32,15 +31,24 @@ class _MaratonaResultScreenState extends State<MaratonaResultScreen> {
       audio.tocar(Som.confete);
       audio.tocar(Som.fanfarra);
       audio.vibrar(Vibracao.pesada);
+      // Recorde: evolução espera a batida do carimbo (onBatida)
+    } else {
+      // Sem carimbo — bichinho evoluiu de verdade, celebra mesmo assim
+      _agendarEvolucao(const Duration(milliseconds: 800));
     }
   }
 
-  void _onCarimboBatida() {
-    if (_efeitosCarimboTocados || !mounted) return;
-    _efeitosCarimboTocados = true;
-    final audio = context.read<AudioService>();
-    audio.tocar(Som.carimbo);
-    audio.vibrar(Vibracao.media);
+  // Agenda o overlay de evolução (se o bichinho evoluiu) após um respiro
+  void _agendarEvolucao(Duration respiro) {
+    final alimentar = widget.resultado.alimentar;
+    if (alimentar?.evoluiu != true) return;
+    Future.delayed(respiro, () {
+      if (!mounted) return;
+      final audio = context.read<AudioService>();
+      audio.tocar(Som.pixelEvolucao);
+      audio.vibrar(Vibracao.pesada);
+      mostrarEvolucao(context, alimentar!.bichinho);
+    });
   }
 
   @override
@@ -88,7 +96,9 @@ class _MaratonaResultScreenState extends State<MaratonaResultScreen> {
                             texto: 'RECORDE',
                             cor: AppColors.laranja,
                             fontSize: 32,
-                            onBatida: _onCarimboBatida,
+                            // Evolução (se houver) 500ms após a batida
+                            onBatida: () => _agendarEvolucao(
+                                const Duration(milliseconds: 500)),
                           ),
                           const SizedBox(height: 24),
                         ],
