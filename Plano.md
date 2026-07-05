@@ -255,6 +255,7 @@ Fácil → Médio → Difícil → Simulado final
 | Plano 2 | FlashcardScreen + SRS engine (3 níveis: Difícil/Médio/Fácil) | ✅ Concluído |
 | Plano 3 | QuizScreen + QuizResultScreen | ✅ Concluído |
 | Plano 3.5 | Modos de estudo extras (Desafio Diário, Revisão Inteligente, Maratona) | ✅ Concluído |
+| Plano 3.75 | Identidade Recorte & Cola + Bichinho Virtual (paleta papel, widgets de papel, sons/haptics, bichinho evolutivo por tema) | ✅ Concluído (2026-07-05) |
 | Plano 4 | PerfilScreen + XP / streak / conquistas | ⏳ Próximo |
 | Plano 5 | Seed de conteúdo real CFC | ⏳ Pendente |
 | Plano 6 | AdMob + FCM + estrutura de paywall | ⏳ Pendente |
@@ -294,6 +295,12 @@ Fácil → Médio → Difícil → Simulado final
 **Conquistas já no seed:** `primeiro_tema`, `streak_7`, `cards_100`, `quiz_3estrelas`, `tema_completo`, `streak_30`
 
 **Tabelas já existem:** `perfil`, `conquistas`, `conquistas_usuario`
+
+**Dívidas conhecidas a resolver no Plano 4:**
+- Nome "Carlos" hardcoded na Home — trocar por nome do perfil
+- `xpProximoNivel` (nivel × 1000) hardcoded na UI — mover pra config/serviço de perfil
+- Threshold 70 (nota mínima) hardcoded nos controllers de quiz e desafio — ler da config
+- Dialog de confirmação de saída triplicado nas telas de quiz/modos — extrair widget/helper compartilhado
 
 ### Plano 5 — Conteúdo Real CFC
 
@@ -362,6 +369,14 @@ Substituir cards placeholder (5 genéricos por fase) por conteúdo real via migr
 ### Rewarded ads
 - Assistir anúncio = ganhar 1 tentativa extra de quiz
 - Alternativa menos agressiva ao paywall, mantém engajamento
+
+### Bichinho virtual e identidade (pós-Plano 3.75)
+- Galeria/coleção de bichinhos (ver todos os bichinhos dos temas num só lugar)
+- Espécies raras/sazonais (eventos, datas comemorativas)
+- Acessórios do bichinho (chapéus, óculos — desbloqueáveis por conquista)
+- Dark mode "papel kraft" (papel escuro mantendo a identidade Recorte & Cola)
+- Copy/voz com personalidade nas telas (microtextos manuscritos)
+- Sons CC0 curados substituindo os placeholders sintetizados de `tool/gerar_sons.dart`
 
 ### Outras ideias
 - Ranking semanal por tema

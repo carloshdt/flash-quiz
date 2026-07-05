@@ -95,6 +95,18 @@ Cada fase gera 2 nós na trilha: **nó de flashcard** (círculo) e **nó de quiz
 - Pool desbloqueado = mesma regra da trilha (primeira fase da seção OU fase anterior com quiz ≥ 70).
 - SecoesScreen recarrega via `routeObserver` (app.dart) ao voltar ao topo da pilha.
 
+### Bichinho virtual
+- **1 bichinho por tema** — nasce como ovo na 1ª visita à Home/tela do tema (só temas desbloqueados). Tabela `bichinhos` (migration v5), `tema_id` UNIQUE.
+- **5 estágios:** Ovo → Filhote → Jovem → Adulto → Lendário.
+- **Energia por atividade:** card avaliado = 2 | quiz concluído = 15 | modo concluído = 10 — chaves `bichinho_energia_card/quiz/modo` na `config`.
+- **Thresholds de evolução:** 50 / 200 / 500 / 1000 (`bichinho_threshold_1..4`).
+- **Streak ativo** (`perfil.streak_atual > 0`) → energia × 1.5 com floor (`bichinho_streak_multiplicador`).
+- **Energia nunca diminui** — sem punição.
+- **Humor** derivado dos dias sem evento no tema: feliz (hoje) / neutro (1d) / comFome (2–6d) / dormindo (7+d) — `bichinho_dias_fome` / `bichinho_dias_dormindo`.
+- **Sprites 16×16 em código** (`lib/widgets/bichinho/sprites.dart`) — 3 espécies, escolhidas por `temaId % 3`.
+- **Alimentação SEMPRE via `BichinhoService.alimentarComMetricas`** — única porta de entrada; dispara métricas `bichinho_nasceu` / `bichinho_alimentado` / `bichinho_evoluiu`.
+- **Evolução celebrada via `mostrarEvolucao`** nas telas de atividade (flashcard/revisão) e de resultado (quiz/desafio/maratona). `ResultadoAlimentar` (campo `alimentar`) viaja no `extra` das rotas de resultado.
+
 ### Gamificação
 - XP por card: Fácil = 10 | Médio = 7 | Difícil = 3
 - XP por estrela de quiz: 50
@@ -152,21 +164,49 @@ UI (screens/widgets)  →  Controllers (ChangeNotifier)  →  Repositories → S
 - Todo schema novo = migration versionada (`migration_vN.dart`) — nunca alterar migration anterior
 - Toda tabela nova: campos `criado_em` e `atualizado_em`
 
-**Design system:** `lib/theme/app_theme.dart` — usar `AppColors.*` em vez de hex direto.
+**Design system "Recorte & Cola":** `lib/theme/app_theme.dart` — scrapbook de papel claro. Tema claro **único** (sem dark mode). Usar `AppColors.*` em vez de hex direto.
 
-**Cores dark theme (AppColors):**
+**Paleta (AppColors):**
 ```dart
-AppColors.background  // Color(0xFF151C35) — fundo navy
-AppColors.surface     // Color(0xFF1C2448) — cards/containers
-AppColors.headerBg    // Color(0xFF1A2F6E) — header AppBar
-AppColors.sheetBg     // Color(0xFF1C2040) — bottom sheets
-AppColors.purple      // Color(0xFF7C4DFF) — roxo primário
-AppColors.orange      // Color(0xFFFF8C00) — laranja (streak, nó atual)
-AppColors.gold        // Color(0xFFFFD600) — dourado (XP badge)
-AppColors.teal        // Color(0xFF00897B) — teal (quiz concluído)
-AppColors.textSecondary // Color(0xFF90CAF9) — texto secundário
+// Fundação
+AppColors.papel        // Color(0xFFF2EDE4) — fundo geral, papel creme
+AppColors.cartao       // Color(0xFFFFFFFF) — superfícies/cards
+AppColors.papelVerso   // Color(0xFFFFFDF7) — verso do flashcard, creme quase-branco
+AppColors.tinta        // Color(0xFF33302A) — texto principal
+AppColors.tintaSuave   // Color(0xFF8A8378) — texto secundário (lápis)
+AppColors.grao         // Color(0xFFD8D0C0) — grão do papel, divisores
+
+// Acentos (usar com parcimônia)
+AppColors.laranja      // Color(0xFFFF5C39) — CTA, energia
+AppColors.verde        // Color(0xFF5CB270) — sucesso, aprovado
+AppColors.amarelo      // Color(0xFFF7D046) — post-its, estrelas
+AppColors.azul         // Color(0xFF4DA6FF) — info
+AppColors.rosa         // Color(0xFFFF9EBB) — carinho
+AppColors.vermelho     // Color(0xFFD63A2F) — perigo, timer acabando
+AppColors.laranjaClaro // Color(0xFFFFF3EE) — fundo da alternativa selecionada
+AppColors.tealPapel    // Color(0xFF7FDBCA) — teal papel (maratona)
+AppColors.postItLaranja // Color(0xFFFFE0B2) — post-it laranja-claro (streak)
+AppColors.postItAzul    // Color(0xFFB8E0F5) — post-it azul-claro (revisão)
+AppColors.postItVerde   // Color(0xFFC8E6C9) — post-it verde-claro (maratona)
 ```
 
-**Font:** Nunito (google_fonts) aplicado app-wide via ThemeData.textTheme.
+**Fontes:**
+- **Patrick Hand** — títulos, aplicado automaticamente via `textTheme` (title/headline/display) e AppBar
+- **Nunito** — corpo do texto (bodyColor/displayColor = tinta)
+- **VT323** — via `AppTheme.pixel()`, **só** no contexto do bichinho
+
 **Acento por tema:** `AppColors.accentFor(tema.id)` — cicla palette de 8 cores.
-**Cards de tema:** emoji grande, sem caixinha, border `accentFor(id).withValues(alpha: 0.22)`.
+
+**Widgets de papel (`lib/widgets/papel/`):** sempre preferir estes em vez de Material cru:
+- `PapelCard(seed)` — cartão de papel com imperfeições determinísticas pelo seed
+- `PostIt`, `Fita`, `Carimbo`, `CarimboBatida` (animação de batida com som/haptic internos)
+- `BotaoPapel` — botão com pressão de papel, haptic interno via AudioService (não duplicar)
+- `LinhaCostura`, `FundoPapel`, `EntradaCascata`, `BarraPapel`, `BordaTracejadaPainter`
+- `papel_util.dart` — helpers `grausParaRad` e `desenharTracejado`
+
+**Sons e haptics:**
+- `AudioService` (`lib/services/audio_service.dart`) — 8 sons `.wav` em `assets/sounds/` (carimbo, confete, fanfarra, papel_amassar, papel_recorte, papel_virar, pixel_comer, pixel_evolucao)
+- Sons atuais são **placeholders sintetizados** — gerados por `tool/gerar_sons.dart`
+- Toggles `som_ativo` / `haptics_ativo` na tabela `config`
+- Helper `vibrarSeDisponivel(context, Vibracao.x)` — respeita o toggle de haptics
+- `BotaoPapel` e `CarimboBatida` já disparam efeitos internamente — não adicionar por fora
