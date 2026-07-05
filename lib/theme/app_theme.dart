@@ -21,6 +21,7 @@ class AppColors {
   static const Color amarelo = Color(0xFFF7D046); // post-its, estrelas
   static const Color azul = Color(0xFF4DA6FF);    // info
   static const Color rosa = Color(0xFFFF9EBB);    // carinho
+  static const Color tealPapel = Color(0xFF7FDBCA); // teal papel (maratona)
   static const Color postItLaranja = Color(0xFFFFE0B2); // post-it laranja-claro (streak)
   static const Color postItAzul = Color(0xFFB8E0F5);    // post-it azul-claro (revisão)
   static const Color postItVerde = Color(0xFFC8E6C9);   // post-it verde-claro (maratona)
@@ -32,7 +33,7 @@ class AppColors {
     rosa,
     amarelo,
     Color(0xFFB48CD9), // roxo suave
-    Color(0xFF7FDBCA), // teal
+    tealPapel,         // teal
     Color(0xFFFF8A7A), // coral
   ];
 
@@ -46,7 +47,7 @@ class AppColors {
   static const Color purple = laranja;
   static const Color orange = laranja;
   static const Color gold = amarelo;
-  static const Color teal = Color(0xFF7FDBCA);
+  static const Color teal = tealPapel;
   static const Color textSecondary = tintaSuave;
   static const Color divider = grao;
 }

@@ -3,7 +3,10 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 import '../../controllers/maratona_controller.dart';
+import '../../services/audio_service.dart';
 import '../../theme/app_theme.dart';
+import '../../widgets/papel/botao_papel.dart';
+import '../../widgets/papel/fundo_papel.dart';
 import '../quiz/widgets/quiz_alternativas.dart';
 import '../quiz/widgets/quiz_questao_card.dart';
 import '../quiz/widgets/quiz_timer_bar.dart';
@@ -22,6 +25,7 @@ class MaratonaScreen extends StatefulWidget {
 class _MaratonaScreenState extends State<MaratonaScreen> {
   bool _concluindo = false;
   bool _navegandoParaResultado = false;
+  int _ultimoProgresso = -1; // acertos+erros — detecta avanço pra vibrar
 
   @override
   void initState() {
@@ -29,6 +33,15 @@ class _MaratonaScreenState extends State<MaratonaScreen> {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       context.read<MaratonaController>().carregar(widget.temaId, widget.nomeTema);
     });
+  }
+
+  // Haptic de avanço de questão — respeita o toggle haptics_ativo
+  void _vibrarAvanco() {
+    try {
+      context.read<AudioService>().vibrar(Vibracao.selecao);
+    } on ProviderNotFoundException {
+      // sem provider (testes) — sem haptic
+    }
   }
 
   Future<bool> _onWillPop() async {
@@ -41,21 +54,26 @@ class _MaratonaScreenState extends State<MaratonaScreen> {
     final confirmar = await showDialog<bool>(
       context: context,
       builder: (_) => AlertDialog(
-        backgroundColor: AppColors.sheetBg,
-        title: const Text('Abandonar maratona?',
-            style: TextStyle(color: Colors.white, fontSize: 16)),
+        backgroundColor: AppColors.cartao,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(6)),
+        title: Text('Abandonar maratona?',
+            style: Theme.of(context).textTheme.titleLarge),
         content: const Text(
           'O score desta partida não será salvo como recorde.',
-          style: TextStyle(color: AppColors.textSecondary, fontSize: 13),
+          style: TextStyle(color: AppColors.tintaSuave, fontSize: 13),
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context, false),
-            child: const Text('Cancelar', style: TextStyle(color: AppColors.textSecondary)),
+            child: const Text('Cancelar',
+                style: TextStyle(
+                    color: AppColors.tintaSuave, fontWeight: FontWeight.w700)),
           ),
           TextButton(
             onPressed: () => Navigator.pop(context, true),
-            child: const Text('Sair', style: TextStyle(color: Color(0xFFFF5252))),
+            child: const Text('Sair',
+                style: TextStyle(
+                    color: AppColors.laranja, fontWeight: FontWeight.w700)),
           ),
         ],
       ),
@@ -81,96 +99,121 @@ class _MaratonaScreenState extends State<MaratonaScreen> {
       canPop: false,
       onPopInvokedWithResult: (_, __) => _onWillPop(),
       child: Scaffold(
-        backgroundColor: AppColors.background,
-        body: Consumer<MaratonaController>(
-          builder: (_, ctrl, __) {
-            if (ctrl.carregando) {
-              return const Center(child: CircularProgressIndicator(color: AppColors.purple));
-            }
-
-            if (ctrl.poolVazio) {
-              return _EstadoVazio(onVoltar: () => context.pop());
-            }
-
-            if (ctrl.fimDeJogo) {
-              if (!_navegandoParaResultado) {
-                _navegandoParaResultado = true;
-                WidgetsBinding.instance.addPostFrameCallback((_) {
-                  if (mounted) _irParaResultado(ctrl);
-                });
+        backgroundColor: AppColors.papel,
+        body: FundoPapel(
+          child: Consumer<MaratonaController>(
+            builder: (_, ctrl, __) {
+              if (ctrl.carregando) {
+                return const Center(
+                    child: CircularProgressIndicator(color: AppColors.laranja));
               }
-              return const Center(child: CircularProgressIndicator(color: AppColors.purple));
-            }
 
-            final card = ctrl.questaoAtual!;
-            final tempoEsgotado = ctrl.estado == EstadoQuestaoMaratona.tempoEsgotado;
+              if (ctrl.poolVazio) {
+                return _EstadoVazio(onVoltar: () => context.pop());
+              }
 
-            return SafeArea(
-              child: Column(
-                children: [
-                  // Header teal: score + vidas
-                  Container(
-                    color: AppColors.teal,
-                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-                    child: Row(
-                      children: [
-                        const Text('🏃', style: TextStyle(fontSize: 18)),
-                        const SizedBox(width: 8),
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                'Maratona · ${widget.nomeTema}',
-                                style: const TextStyle(fontSize: 10, color: Colors.white70),
-                              ),
-                              const SizedBox(height: 2),
-                              Text(
-                                '${ctrl.acertos} acertos',
-                                style: const TextStyle(
-                                    fontSize: 14,
-                                    fontWeight: FontWeight.w800,
-                                    color: Colors.white),
-                              ),
-                            ],
+              if (ctrl.fimDeJogo) {
+                if (!_navegandoParaResultado) {
+                  _navegandoParaResultado = true;
+                  WidgetsBinding.instance.addPostFrameCallback((_) {
+                    if (mounted) _irParaResultado(ctrl);
+                  });
+                }
+                return const Center(
+                    child: CircularProgressIndicator(color: AppColors.laranja));
+              }
+
+              // Avançou de questão (respondeu certo ou errado) → haptic
+              final progresso = ctrl.acertos + ctrl.erros;
+              if (_ultimoProgresso != -1 && progresso != _ultimoProgresso) {
+                _vibrarAvanco();
+              }
+              _ultimoProgresso = progresso;
+
+              final card = ctrl.questaoAtual!;
+              final tempoEsgotado = ctrl.estado == EstadoQuestaoMaratona.tempoEsgotado;
+
+              return SafeArea(
+                child: Column(
+                  children: [
+                    // Header papel da maratona: acento teal + corações de vida
+                    Padding(
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 16, vertical: 10),
+                      child: Row(
+                        children: [
+                          const Text('🏃', style: TextStyle(fontSize: 18)),
+                          const SizedBox(width: 8),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  'Maratona · ${widget.nomeTema}',
+                                  style: const TextStyle(
+                                      fontSize: 11,
+                                      color: AppColors.tintaSuave),
+                                ),
+                                const SizedBox(height: 2),
+                                Text(
+                                  '${ctrl.acertos} acertos',
+                                  style:
+                                      Theme.of(context).textTheme.titleMedium,
+                                ),
+                                const SizedBox(height: 4),
+                                Container(
+                                  height: 3,
+                                  width: 48,
+                                  decoration: BoxDecoration(
+                                    color: AppColors.tealPapel,
+                                    borderRadius: BorderRadius.circular(2),
+                                  ),
+                                ),
+                              ],
+                            ),
                           ),
-                        ),
-                        // Vidas restantes (corações)
-                        Row(
-                          children: List.generate(ctrl.maxErros, (i) {
-                            final perdida = i < ctrl.erros;
-                            return Padding(
-                              padding: const EdgeInsets.only(left: 4),
-                              child: Text(
-                                perdida ? '🖤' : '❤️',
-                                style: const TextStyle(fontSize: 16),
-                              ),
-                            );
-                          }),
-                        ),
-                      ],
+                          // Vidas restantes (corações de papel)
+                          Row(
+                            children: List.generate(ctrl.maxErros, (i) {
+                              final perdida = i < ctrl.erros;
+                              return Padding(
+                                padding: const EdgeInsets.only(left: 4),
+                                child: Icon(
+                                  perdida
+                                      ? Icons.favorite_border
+                                      : Icons.favorite,
+                                  size: 18,
+                                  color: perdida
+                                      ? AppColors.grao
+                                      : AppColors.rosa,
+                                ),
+                              );
+                            }),
+                          ),
+                        ],
+                      ),
                     ),
-                  ),
-                  QuizTimerBar(
-                    percentual: ctrl.percentualTempo,
-                    segundos: ctrl.segundosRestantes,
-                  ),
-                  QuizQuestaoCard(pergunta: card.pergunta),
-                  const SizedBox(height: 12),
-                  if (tempoEsgotado)
-                    TempoEsgotadoBanner(onTap: ctrl.avancarAposTempoEsgotado),
-                  Expanded(
-                    child: QuizAlternativas(
-                      alternativas: ctrl.alternativasAtual,
-                      respostaSelecionada: null,
-                      desabilitada: tempoEsgotado,
-                      onSelecionar: ctrl.selecionarResposta,
+                    QuizTimerBar(
+                      percentual: ctrl.percentualTempo,
+                      segundos: ctrl.segundosRestantes,
                     ),
-                  ),
-                ],
-              ),
-            );
-          },
+                    QuizQuestaoCard(pergunta: card.pergunta, seed: card.id),
+                    const SizedBox(height: 12),
+                    if (tempoEsgotado)
+                      TempoEsgotadoBanner(onTap: ctrl.avancarAposTempoEsgotado),
+                    Expanded(
+                      child: QuizAlternativas(
+                        alternativas: ctrl.alternativasAtual,
+                        respostaSelecionada: null,
+                        desabilitada: tempoEsgotado,
+                        onSelecionar: ctrl.selecionarResposta,
+                      ),
+                    ),
+                  ],
+                ),
+              );
+            },
+          ),
         ),
       ),
     );
@@ -193,29 +236,22 @@ class _EstadoVazio extends StatelessWidget {
             children: [
               const Text('📖', style: TextStyle(fontSize: 64)),
               const SizedBox(height: 16),
-              const Text(
+              Text(
                 'Nada por aqui ainda',
-                style: TextStyle(fontSize: 22, fontWeight: FontWeight.w800, color: Colors.white),
+                style: Theme.of(context).textTheme.headlineMedium,
               ),
               const SizedBox(height: 8),
               const Text(
                 'Estude uma fase primeiro para liberar a maratona deste tema.',
                 textAlign: TextAlign.center,
-                style: TextStyle(fontSize: 14, color: AppColors.textSecondary),
+                style: TextStyle(fontSize: 14, color: AppColors.tintaSuave),
               ),
               const SizedBox(height: 40),
               SizedBox(
                 width: double.infinity,
-                child: ElevatedButton(
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: AppColors.purple,
-                    padding: const EdgeInsets.symmetric(vertical: 14),
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                  ),
+                child: BotaoPapel(
                   onPressed: onVoltar,
-                  child: const Text('Voltar',
-                      style: TextStyle(
-                          fontWeight: FontWeight.w800, fontSize: 15, color: Colors.white)),
+                  child: const Center(child: Text('Voltar')),
                 ),
               ),
             ],

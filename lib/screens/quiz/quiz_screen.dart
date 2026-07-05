@@ -3,6 +3,9 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 import '../../controllers/quiz_controller.dart';
+import '../../services/audio_service.dart';
+import '../../theme/app_theme.dart';
+import '../../widgets/papel/fundo_papel.dart';
 import 'widgets/quiz_timer_bar.dart';
 import 'widgets/quiz_questao_card.dart';
 import 'widgets/quiz_alternativas.dart';
@@ -27,6 +30,7 @@ class QuizScreen extends StatefulWidget {
 class _QuizScreenState extends State<QuizScreen> with SingleTickerProviderStateMixin {
   bool _concluindo = false; // guard: evita concluir() duplo
   bool _navegandoParaResultado = false; // guard: evita múltiplos addPostFrameCallback
+  int _ultimoIndice = -1; // detecta avanço de questão pra vibrar
 
   late AnimationController _fadeController;
   late Animation<double> _fadeAnim;
@@ -56,25 +60,39 @@ class _QuizScreenState extends State<QuizScreen> with SingleTickerProviderStateM
     super.dispose();
   }
 
+  // Haptic de avanço de questão — respeita o toggle haptics_ativo
+  void _vibrarAvanco() {
+    try {
+      context.read<AudioService>().vibrar(Vibracao.selecao);
+    } on ProviderNotFoundException {
+      // sem provider (testes) — sem haptic
+    }
+  }
+
   Future<bool> _onWillPop() async {
     final confirmar = await showDialog<bool>(
       context: context,
       builder: (_) => AlertDialog(
-        backgroundColor: const Color(0xFF1C2040),
-        title: const Text('Sair do quiz?',
-            style: TextStyle(color: Colors.white, fontSize: 16)),
+        backgroundColor: AppColors.cartao,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(6)),
+        title: Text('Sair do quiz?',
+            style: Theme.of(context).textTheme.titleLarge),
         content: const Text(
           'Esta tentativa será registrada como abandonada.',
-          style: TextStyle(color: Color(0xFF90CAF9), fontSize: 13),
+          style: TextStyle(color: AppColors.tintaSuave, fontSize: 13),
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context, false),
-            child: const Text('Cancelar', style: TextStyle(color: Color(0xFF90CAF9))),
+            child: const Text('Cancelar',
+                style: TextStyle(
+                    color: AppColors.tintaSuave, fontWeight: FontWeight.w700)),
           ),
           TextButton(
             onPressed: () => Navigator.pop(context, true),
-            child: const Text('Sair', style: TextStyle(color: Color(0xFFFF5252))),
+            child: const Text('Sair',
+                style: TextStyle(
+                    color: AppColors.laranja, fontWeight: FontWeight.w700)),
           ),
         ],
       ),
@@ -100,86 +118,106 @@ class _QuizScreenState extends State<QuizScreen> with SingleTickerProviderStateM
       canPop: false,
       onPopInvokedWithResult: (_, __) => _onWillPop(),
       child: Scaffold(
-        backgroundColor: const Color(0xFF151C35),
-        body: Consumer<QuizController>(
-          builder: (_, ctrl, __) {
-            if (ctrl.carregando) {
-              return const Center(child: CircularProgressIndicator(color: Color(0xFF7C4DFF)));
-            }
+        backgroundColor: AppColors.papel,
+        body: FundoPapel(
+          child: Consumer<QuizController>(
+            builder: (_, ctrl, __) {
+              if (ctrl.carregando) {
+                return const Center(
+                    child: CircularProgressIndicator(color: AppColors.laranja));
+              }
 
-            // Quando última questão foi respondida, navega para resultado
-            if (ctrl.quizConcluido && !_navegandoParaResultado) {
-              _navegandoParaResultado = true;
-              WidgetsBinding.instance.addPostFrameCallback((_) {
-                if (mounted) _irParaResultado(ctrl);
-              });
-              return const Center(child: CircularProgressIndicator(color: Color(0xFF7C4DFF)));
-            } else if (ctrl.quizConcluido) {
-              return const Center(child: CircularProgressIndicator(color: Color(0xFF7C4DFF)));
-            }
+              // Quando última questão foi respondida, navega para resultado
+              if (ctrl.quizConcluido && !_navegandoParaResultado) {
+                _navegandoParaResultado = true;
+                WidgetsBinding.instance.addPostFrameCallback((_) {
+                  if (mounted) _irParaResultado(ctrl);
+                });
+                return const Center(
+                    child: CircularProgressIndicator(color: AppColors.laranja));
+              } else if (ctrl.quizConcluido) {
+                return const Center(
+                    child: CircularProgressIndicator(color: AppColors.laranja));
+              }
 
-            final card = ctrl.questaoAtual!;
-            final tempoEsgotado = ctrl.estado == EstadoQuestao.tempoEsgotado;
-            final selecionada = ctrl.estado == EstadoQuestao.selecionada;
+              // Avançou de questão → haptic de seleção
+              if (_ultimoIndice != -1 && ctrl.indiceAtual != _ultimoIndice) {
+                _vibrarAvanco();
+              }
+              _ultimoIndice = ctrl.indiceAtual;
 
-            return FadeTransition(
-              opacity: _fadeAnim,
-              child: SafeArea(
-                child: Column(
-                  children: [
-                    // Header azul
-                    Container(
-                      color: const Color(0xFF1565C0),
-                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            '${widget.nomeTema} · ${widget.nomeFase}',
-                            style: const TextStyle(
-                                fontSize: 10, color: Colors.white70),
+              final card = ctrl.questaoAtual!;
+              final tempoEsgotado = ctrl.estado == EstadoQuestao.tempoEsgotado;
+              final selecionada = ctrl.estado == EstadoQuestao.selecionada;
+
+              return FadeTransition(
+                opacity: _fadeAnim,
+                child: SafeArea(
+                  child: Column(
+                    children: [
+                      // Header papel: contexto + questão atual, sublinhado azul
+                      Padding(
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 16, vertical: 10),
+                        child: SizedBox(
+                          width: double.infinity,
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                '${widget.nomeTema} · ${widget.nomeFase}',
+                                style: const TextStyle(
+                                    fontSize: 11, color: AppColors.tintaSuave),
+                              ),
+                              const SizedBox(height: 2),
+                              Text(
+                                'Questão ${ctrl.indiceAtual + 1} / ${ctrl.totalQuestoes}',
+                                style: Theme.of(context).textTheme.titleMedium,
+                              ),
+                              const SizedBox(height: 4),
+                              Container(
+                                height: 3,
+                                width: 48,
+                                decoration: BoxDecoration(
+                                  color: AppColors.azul,
+                                  borderRadius: BorderRadius.circular(2),
+                                ),
+                              ),
+                            ],
                           ),
-                          const SizedBox(height: 2),
-                          Text(
-                            'Questão ${ctrl.indiceAtual + 1} / ${ctrl.totalQuestoes}',
-                            style: const TextStyle(
-                                fontSize: 14,
-                                fontWeight: FontWeight.w800,
-                                color: Colors.white),
-                          ),
-                        ],
+                        ),
                       ),
-                    ),
 
-                    // Barra de timer + número
-                    QuizTimerBar(
-                      percentual: ctrl.percentualTempo,
-                      segundos: ctrl.segundosRestantes,
-                    ),
-
-                    // Card da pergunta
-                    QuizQuestaoCard(pergunta: card.pergunta),
-
-                    const SizedBox(height: 12),
-
-                    // Timer esgotado: mensagem
-                    if (tempoEsgotado)
-                      TempoEsgotadoBanner(onTap: ctrl.avancarAposTempoEsgotado),
-
-                    // Alternativas
-                    Expanded(
-                      child: QuizAlternativas(
-                        alternativas: ctrl.alternativasAtual,
-                        respostaSelecionada: ctrl.respostaSelecionada,
-                        desabilitada: tempoEsgotado || selecionada,
-                        onSelecionar: ctrl.selecionarResposta,
+                      // Barra de timer + número
+                      QuizTimerBar(
+                        percentual: ctrl.percentualTempo,
+                        segundos: ctrl.segundosRestantes,
                       ),
-                    ),
-                  ],
+
+                      // Card da pergunta
+                      QuizQuestaoCard(pergunta: card.pergunta, seed: card.id),
+
+                      const SizedBox(height: 12),
+
+                      // Timer esgotado: mensagem
+                      if (tempoEsgotado)
+                        TempoEsgotadoBanner(onTap: ctrl.avancarAposTempoEsgotado),
+
+                      // Alternativas
+                      Expanded(
+                        child: QuizAlternativas(
+                          alternativas: ctrl.alternativasAtual,
+                          respostaSelecionada: ctrl.respostaSelecionada,
+                          desabilitada: tempoEsgotado || selecionada,
+                          onSelecionar: ctrl.selecionarResposta,
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
-              ),
-            );
-          },
+              );
+            },
+          ),
         ),
       ),
     );

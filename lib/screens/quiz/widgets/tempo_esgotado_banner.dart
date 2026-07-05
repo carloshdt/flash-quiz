@@ -1,5 +1,8 @@
 // lib/screens/quiz/widgets/tempo_esgotado_banner.dart
+// Post-it laranja: tempo acabou, toque pra avançar (0 pts).
 import 'package:flutter/material.dart';
+import '../../../theme/app_theme.dart';
+import '../../../widgets/papel/post_it.dart';
 
 class TempoEsgotadoBanner extends StatelessWidget {
   final VoidCallback onTap;
@@ -8,22 +11,35 @@ class TempoEsgotadoBanner extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: onTap,
-      child: Container(
-        margin: const EdgeInsets.symmetric(horizontal: 16),
-        padding: const EdgeInsets.symmetric(vertical: 10),
-        width: double.infinity,
-        decoration: BoxDecoration(
-          color: const Color(0xFF3A1A1A),
-          borderRadius: BorderRadius.circular(8),
-          border: Border.all(color: const Color(0xFFFF5252)),
-        ),
-        child: const Text(
-          'Tempo esgotado — toque para continuar',
-          textAlign: TextAlign.center,
-          style: TextStyle(
-              color: Color(0xFFFF5252), fontWeight: FontWeight.w700, fontSize: 13),
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16),
+      child: GestureDetector(
+        onTap: onTap,
+        behavior: HitTestBehavior.opaque,
+        child: PostIt(
+          cor: AppColors.postItLaranja,
+          angulo: -1,
+          child: SizedBox(
+            width: double.infinity,
+            child: Column(
+              children: [
+                Text(
+                  'Tempo esgotado!',
+                  textAlign: TextAlign.center,
+                  style: Theme.of(context)
+                      .textTheme
+                      .titleMedium
+                      ?.copyWith(color: AppColors.tinta),
+                ),
+                const SizedBox(height: 2),
+                const Text(
+                  'Toque para continuar',
+                  textAlign: TextAlign.center,
+                  style: TextStyle(fontSize: 12, color: AppColors.tintaSuave),
+                ),
+              ],
+            ),
+          ),
         ),
       ),
     );
