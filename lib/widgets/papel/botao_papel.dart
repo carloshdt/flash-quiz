@@ -1,7 +1,6 @@
 // lib/widgets/papel/botao_papel.dart
 // Botão que "afunda" ao pressionar: scale 0.97 + sombra some. Substitui ripple.
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
 import '../../services/audio_service.dart';
 import '../../theme/app_theme.dart';
 
@@ -39,11 +38,7 @@ class _BotaoPapelState extends State<BotaoPapel> {
           ? (_) {
               setState(() => _pressionado = false);
               // Haptic via AudioService — respeita o toggle haptics_ativo
-              try {
-                context.read<AudioService>().vibrar(Vibracao.leve);
-              } on ProviderNotFoundException {
-                // sem provider (testes) — sem haptic
-              }
+              vibrarSeDisponivel(context, Vibracao.leve);
               widget.onPressed!();
             }
           : null,

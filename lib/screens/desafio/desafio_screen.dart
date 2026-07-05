@@ -5,8 +5,8 @@ import 'package:provider/provider.dart';
 import '../../controllers/desafio_controller.dart';
 import '../../services/audio_service.dart';
 import '../../theme/app_theme.dart';
-import '../../widgets/papel/botao_papel.dart';
 import '../../widgets/papel/fundo_papel.dart';
+import '../quiz/widgets/estado_vazio_modo.dart';
 import '../quiz/widgets/quiz_alternativas.dart';
 import '../quiz/widgets/quiz_questao_card.dart';
 import '../quiz/widgets/quiz_timer_bar.dart';
@@ -35,21 +35,12 @@ class _DesafioScreenState extends State<DesafioScreen> {
     });
   }
 
-  // Haptic de avanço de questão — respeita o toggle haptics_ativo
-  void _vibrarAvanco() {
-    try {
-      context.read<AudioService>().vibrar(Vibracao.selecao);
-    } on ProviderNotFoundException {
-      // sem provider (testes) — sem haptic
-    }
-  }
-
-  Future<bool> _onWillPop() async {
+  Future<void> _onWillPop() async {
     final ctrl = context.read<DesafioController>();
     // Carregando ou pool vazio: sai direto, nada a abandonar
     if (ctrl.carregando || ctrl.poolVazio) {
       if (mounted) context.pop();
-      return false;
+      return;
     }
     final confirmar = await showDialog<bool>(
       context: context,
@@ -82,7 +73,6 @@ class _DesafioScreenState extends State<DesafioScreen> {
       await context.read<DesafioController>().abandonar();
       if (mounted) context.pop();
     }
-    return false;
   }
 
   Future<void> _irParaResultado(DesafioController ctrl) async {
@@ -109,7 +99,11 @@ class _DesafioScreenState extends State<DesafioScreen> {
               }
 
               if (ctrl.poolVazio) {
-                return _EstadoVazio(onVoltar: () => context.pop());
+                return EstadoVazioModo(
+                  mensagem:
+                      'Estude uma fase primeiro para liberar o desafio deste tema.',
+                  onVoltar: () => context.pop(),
+                );
               }
 
               if (ctrl.desafioConcluido) {
@@ -125,7 +119,7 @@ class _DesafioScreenState extends State<DesafioScreen> {
 
               // Avançou de questão → haptic de seleção
               if (_ultimoIndice != -1 && ctrl.indiceAtual != _ultimoIndice) {
-                _vibrarAvanco();
+                vibrarSeDisponivel(context, Vibracao.selecao);
               }
               _ultimoIndice = ctrl.indiceAtual;
 
@@ -202,44 +196,3 @@ class _DesafioScreenState extends State<DesafioScreen> {
   }
 }
 
-class _EstadoVazio extends StatelessWidget {
-  final VoidCallback onVoltar;
-
-  const _EstadoVazio({required this.onVoltar});
-
-  @override
-  Widget build(BuildContext context) {
-    return SafeArea(
-      child: Center(
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 32),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              const Text('📖', style: TextStyle(fontSize: 64)),
-              const SizedBox(height: 16),
-              Text(
-                'Nada por aqui ainda',
-                style: Theme.of(context).textTheme.headlineMedium,
-              ),
-              const SizedBox(height: 8),
-              const Text(
-                'Estude uma fase primeiro para liberar o desafio deste tema.',
-                textAlign: TextAlign.center,
-                style: TextStyle(fontSize: 14, color: AppColors.tintaSuave),
-              ),
-              const SizedBox(height: 40),
-              SizedBox(
-                width: double.infinity,
-                child: BotaoPapel(
-                  onPressed: onVoltar,
-                  child: const Center(child: Text('Voltar')),
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-}

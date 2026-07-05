@@ -1,10 +1,20 @@
 // lib/services/audio_service.dart
 // Sons de papel/pixel + haptics, com toggles persistidos em config.
 import 'package:audioplayers/audioplayers.dart';
-import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter/widgets.dart';
+import 'package:provider/provider.dart';
 import '../repositories/config_repository.dart';
 import 'metrica_service.dart';
+
+/// Vibra se o AudioService estiver disponível no Provider (telas/testes sem ele: no-op).
+void vibrarSeDisponivel(BuildContext context, Vibracao v) {
+  try {
+    context.read<AudioService>().vibrar(v);
+  } on ProviderNotFoundException {
+    // sem provider (testes) — sem haptic
+  }
+}
 
 enum Som {
   papelVirar('papel_virar.wav'),

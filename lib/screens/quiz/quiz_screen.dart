@@ -27,24 +27,14 @@ class QuizScreen extends StatefulWidget {
   State<QuizScreen> createState() => _QuizScreenState();
 }
 
-class _QuizScreenState extends State<QuizScreen> with SingleTickerProviderStateMixin {
+class _QuizScreenState extends State<QuizScreen> {
   bool _concluindo = false; // guard: evita concluir() duplo
   bool _navegandoParaResultado = false; // guard: evita múltiplos addPostFrameCallback
   int _ultimoIndice = -1; // detecta avanço de questão pra vibrar
 
-  late AnimationController _fadeController;
-  late Animation<double> _fadeAnim;
-
   @override
   void initState() {
     super.initState();
-    _fadeController = AnimationController(
-      vsync: this,
-      duration: const Duration(milliseconds: 300),
-      value: 1.0,
-    );
-    _fadeAnim = CurvedAnimation(parent: _fadeController, curve: Curves.easeInOut);
-
     WidgetsBinding.instance.addPostFrameCallback((_) {
       context.read<QuizController>().carregarQuiz(
             widget.faseId,
@@ -54,22 +44,7 @@ class _QuizScreenState extends State<QuizScreen> with SingleTickerProviderStateM
     });
   }
 
-  @override
-  void dispose() {
-    _fadeController.dispose();
-    super.dispose();
-  }
-
-  // Haptic de avanço de questão — respeita o toggle haptics_ativo
-  void _vibrarAvanco() {
-    try {
-      context.read<AudioService>().vibrar(Vibracao.selecao);
-    } on ProviderNotFoundException {
-      // sem provider (testes) — sem haptic
-    }
-  }
-
-  Future<bool> _onWillPop() async {
+  Future<void> _onWillPop() async {
     final confirmar = await showDialog<bool>(
       context: context,
       builder: (_) => AlertDialog(
@@ -101,7 +76,6 @@ class _QuizScreenState extends State<QuizScreen> with SingleTickerProviderStateM
       await context.read<QuizController>().abandonar();
       if (mounted) context.pop();
     }
-    return false;
   }
 
   Future<void> _irParaResultado(QuizController ctrl) async {
@@ -142,7 +116,7 @@ class _QuizScreenState extends State<QuizScreen> with SingleTickerProviderStateM
 
               // Avançou de questão → haptic de seleção
               if (_ultimoIndice != -1 && ctrl.indiceAtual != _ultimoIndice) {
-                _vibrarAvanco();
+                vibrarSeDisponivel(context, Vibracao.selecao);
               }
               _ultimoIndice = ctrl.indiceAtual;
 
@@ -150,70 +124,67 @@ class _QuizScreenState extends State<QuizScreen> with SingleTickerProviderStateM
               final tempoEsgotado = ctrl.estado == EstadoQuestao.tempoEsgotado;
               final selecionada = ctrl.estado == EstadoQuestao.selecionada;
 
-              return FadeTransition(
-                opacity: _fadeAnim,
-                child: SafeArea(
-                  child: Column(
-                    children: [
-                      // Header papel: contexto + questão atual, sublinhado azul
-                      Padding(
-                        padding: const EdgeInsets.symmetric(
-                            horizontal: 16, vertical: 10),
-                        child: SizedBox(
-                          width: double.infinity,
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                '${widget.nomeTema} · ${widget.nomeFase}',
-                                style: const TextStyle(
-                                    fontSize: 11, color: AppColors.tintaSuave),
+              return SafeArea(
+                child: Column(
+                  children: [
+                    // Header papel: contexto + questão atual, sublinhado azul
+                    Padding(
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 16, vertical: 10),
+                      child: SizedBox(
+                        width: double.infinity,
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              '${widget.nomeTema} · ${widget.nomeFase}',
+                              style: const TextStyle(
+                                  fontSize: 11, color: AppColors.tintaSuave),
+                            ),
+                            const SizedBox(height: 2),
+                            Text(
+                              'Questão ${ctrl.indiceAtual + 1} / ${ctrl.totalQuestoes}',
+                              style: Theme.of(context).textTheme.titleMedium,
+                            ),
+                            const SizedBox(height: 4),
+                            Container(
+                              height: 3,
+                              width: 48,
+                              decoration: BoxDecoration(
+                                color: AppColors.azul,
+                                borderRadius: BorderRadius.circular(2),
                               ),
-                              const SizedBox(height: 2),
-                              Text(
-                                'Questão ${ctrl.indiceAtual + 1} / ${ctrl.totalQuestoes}',
-                                style: Theme.of(context).textTheme.titleMedium,
-                              ),
-                              const SizedBox(height: 4),
-                              Container(
-                                height: 3,
-                                width: 48,
-                                decoration: BoxDecoration(
-                                  color: AppColors.azul,
-                                  borderRadius: BorderRadius.circular(2),
-                                ),
-                              ),
-                            ],
-                          ),
+                            ),
+                          ],
                         ),
                       ),
+                    ),
 
-                      // Barra de timer + número
-                      QuizTimerBar(
-                        percentual: ctrl.percentualTempo,
-                        segundos: ctrl.segundosRestantes,
+                    // Barra de timer + número
+                    QuizTimerBar(
+                      percentual: ctrl.percentualTempo,
+                      segundos: ctrl.segundosRestantes,
+                    ),
+
+                    // Card da pergunta
+                    QuizQuestaoCard(pergunta: card.pergunta, seed: card.id),
+
+                    const SizedBox(height: 12),
+
+                    // Timer esgotado: mensagem
+                    if (tempoEsgotado)
+                      TempoEsgotadoBanner(onTap: ctrl.avancarAposTempoEsgotado),
+
+                    // Alternativas
+                    Expanded(
+                      child: QuizAlternativas(
+                        alternativas: ctrl.alternativasAtual,
+                        respostaSelecionada: ctrl.respostaSelecionada,
+                        desabilitada: tempoEsgotado || selecionada,
+                        onSelecionar: ctrl.selecionarResposta,
                       ),
-
-                      // Card da pergunta
-                      QuizQuestaoCard(pergunta: card.pergunta, seed: card.id),
-
-                      const SizedBox(height: 12),
-
-                      // Timer esgotado: mensagem
-                      if (tempoEsgotado)
-                        TempoEsgotadoBanner(onTap: ctrl.avancarAposTempoEsgotado),
-
-                      // Alternativas
-                      Expanded(
-                        child: QuizAlternativas(
-                          alternativas: ctrl.alternativasAtual,
-                          respostaSelecionada: ctrl.respostaSelecionada,
-                          desabilitada: tempoEsgotado || selecionada,
-                          onSelecionar: ctrl.selecionarResposta,
-                        ),
-                      ),
-                    ],
-                  ),
+                    ),
+                  ],
                 ),
               );
             },

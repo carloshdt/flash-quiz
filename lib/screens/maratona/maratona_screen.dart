@@ -5,8 +5,8 @@ import 'package:provider/provider.dart';
 import '../../controllers/maratona_controller.dart';
 import '../../services/audio_service.dart';
 import '../../theme/app_theme.dart';
-import '../../widgets/papel/botao_papel.dart';
 import '../../widgets/papel/fundo_papel.dart';
+import '../quiz/widgets/estado_vazio_modo.dart';
 import '../quiz/widgets/quiz_alternativas.dart';
 import '../quiz/widgets/quiz_questao_card.dart';
 import '../quiz/widgets/quiz_timer_bar.dart';
@@ -35,21 +35,12 @@ class _MaratonaScreenState extends State<MaratonaScreen> {
     });
   }
 
-  // Haptic de avanço de questão — respeita o toggle haptics_ativo
-  void _vibrarAvanco() {
-    try {
-      context.read<AudioService>().vibrar(Vibracao.selecao);
-    } on ProviderNotFoundException {
-      // sem provider (testes) — sem haptic
-    }
-  }
-
-  Future<bool> _onWillPop() async {
+  Future<void> _onWillPop() async {
     final ctrl = context.read<MaratonaController>();
     // Carregando ou pool vazio: sai direto, nada a abandonar
     if (ctrl.carregando || ctrl.poolVazio) {
       if (mounted) context.pop();
-      return false;
+      return;
     }
     final confirmar = await showDialog<bool>(
       context: context,
@@ -82,7 +73,6 @@ class _MaratonaScreenState extends State<MaratonaScreen> {
       await context.read<MaratonaController>().abandonar();
       if (mounted) context.pop();
     }
-    return false;
   }
 
   Future<void> _irParaResultado(MaratonaController ctrl) async {
@@ -109,7 +99,11 @@ class _MaratonaScreenState extends State<MaratonaScreen> {
               }
 
               if (ctrl.poolVazio) {
-                return _EstadoVazio(onVoltar: () => context.pop());
+                return EstadoVazioModo(
+                  mensagem:
+                      'Estude uma fase primeiro para liberar a maratona deste tema.',
+                  onVoltar: () => context.pop(),
+                );
               }
 
               if (ctrl.fimDeJogo) {
@@ -126,7 +120,7 @@ class _MaratonaScreenState extends State<MaratonaScreen> {
               // Avançou de questão (respondeu certo ou errado) → haptic
               final progresso = ctrl.acertos + ctrl.erros;
               if (_ultimoProgresso != -1 && progresso != _ultimoProgresso) {
-                _vibrarAvanco();
+                vibrarSeDisponivel(context, Vibracao.selecao);
               }
               _ultimoProgresso = progresso;
 
@@ -220,44 +214,3 @@ class _MaratonaScreenState extends State<MaratonaScreen> {
   }
 }
 
-class _EstadoVazio extends StatelessWidget {
-  final VoidCallback onVoltar;
-
-  const _EstadoVazio({required this.onVoltar});
-
-  @override
-  Widget build(BuildContext context) {
-    return SafeArea(
-      child: Center(
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 32),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              const Text('📖', style: TextStyle(fontSize: 64)),
-              const SizedBox(height: 16),
-              Text(
-                'Nada por aqui ainda',
-                style: Theme.of(context).textTheme.headlineMedium,
-              ),
-              const SizedBox(height: 8),
-              const Text(
-                'Estude uma fase primeiro para liberar a maratona deste tema.',
-                textAlign: TextAlign.center,
-                style: TextStyle(fontSize: 14, color: AppColors.tintaSuave),
-              ),
-              const SizedBox(height: 40),
-              SizedBox(
-                width: double.infinity,
-                child: BotaoPapel(
-                  onPressed: onVoltar,
-                  child: const Center(child: Text('Voltar')),
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-}

@@ -12,7 +12,7 @@ class QuizTimerBar extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     // Mantém o threshold: resta < 30% do tempo → vermelho
-    final cor = percentual < 0.30 ? const Color(0xFFD63A2F) : AppColors.laranja;
+    final cor = percentual < 0.30 ? AppColors.vermelho : AppColors.laranja;
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
       child: Row(

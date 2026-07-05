@@ -1,7 +1,6 @@
 // lib/screens/quiz/widgets/quiz_alternativas.dart
 // Lista A/B/C/D como tiras de papel — selecionada ganha borda laranja.
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
 import '../../../services/audio_service.dart';
 import '../../../theme/app_theme.dart';
 import '../../../widgets/papel/papel_util.dart';
@@ -22,11 +21,7 @@ class QuizAlternativas extends StatelessWidget {
 
   void _tocar(BuildContext context, int indice) {
     // Haptic via AudioService — respeita o toggle haptics_ativo
-    try {
-      context.read<AudioService>().vibrar(Vibracao.leve);
-    } on ProviderNotFoundException {
-      // sem provider (testes) — sem haptic
-    }
+    vibrarSeDisponivel(context, Vibracao.leve);
     onSelecionar(indice);
   }
 
@@ -53,7 +48,7 @@ class QuizAlternativas extends StatelessWidget {
                     const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
                 decoration: BoxDecoration(
                   color: selecionadaEsta
-                      ? const Color(0xFFFFF3EE)
+                      ? AppColors.laranjaClaro
                       : AppColors.cartao,
                   borderRadius: BorderRadius.circular(3),
                   border: Border.all(
