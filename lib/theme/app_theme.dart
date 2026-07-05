@@ -40,18 +40,6 @@ class AppColors {
   ];
 
   static Color accentFor(int id) => _accents[id % _accents.length];
-
-  // COMPAT — remover na task final de limpeza (aliases pro código antigo compilar)
-  static const Color background = papel;
-  static const Color surface = cartao;
-  static const Color headerBg = papel;
-  static const Color sheetBg = cartao;
-  static const Color purple = laranja;
-  static const Color orange = laranja;
-  static const Color gold = amarelo;
-  static const Color teal = tealPapel;
-  static const Color textSecondary = tintaSuave;
-  static const Color divider = grao;
 }
 
 class AppTheme {

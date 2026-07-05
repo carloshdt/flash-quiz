@@ -37,6 +37,10 @@ class QuizResultado {
   final String nomeFase;
   final String nomeTema;
 
+  /// Resultado de alimentar o bichinho — viaja com o resultado pois a tela
+  /// de resultado é outra rota (pushReplacement) e não enxerga o controller.
+  final ResultadoAlimentar? alimentar;
+
   QuizResultado({
     required this.nota,
     required this.estrelas,
@@ -45,6 +49,7 @@ class QuizResultado {
     required this.faseId,
     required this.nomeFase,
     required this.nomeTema,
+    this.alimentar,
   });
 }
 
@@ -290,6 +295,7 @@ class QuizController extends ChangeNotifier {
       faseId: faseId,
       nomeFase: nomeFase,
       nomeTema: nomeTema,
+      alimentar: ultimoAlimentar,
     );
   }
 

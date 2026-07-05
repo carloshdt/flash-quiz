@@ -22,7 +22,7 @@ void main() {
 
   test('registrar salva evento no banco', () async {
     final repo = EventoRepository();
-    await repo.registrar(Evento(
+    await repo.registrar(const Evento(
       evento: 'app_aberto',
       metadata: {'versao': '1.0.0'},
     ));
@@ -33,7 +33,7 @@ void main() {
 
   test('registrar salva metadata como JSON', () async {
     final repo = EventoRepository();
-    await repo.registrar(Evento(
+    await repo.registrar(const Evento(
       evento: 'tema_selecionado',
       tema: 'CFC',
       metadata: {'tema_id': 1},
