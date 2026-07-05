@@ -8,7 +8,8 @@ import '../../../widgets/papel/botao_papel.dart';
 class BottomSheetFase extends StatelessWidget {
   final ItemTrilha item;
   final VoidCallback onIniciar;
-  const BottomSheetFase({super.key, required this.item, required this.onIniciar});
+  const BottomSheetFase(
+      {super.key, required this.item, required this.onIniciar});
 
   @override
   Widget build(BuildContext context) {
@@ -19,7 +20,8 @@ class BottomSheetFase extends StatelessWidget {
         color: AppColors.papel,
         borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
       ),
-      padding: EdgeInsets.fromLTRB(16, 12, 16, 24 + MediaQuery.of(context).padding.bottom),
+      padding: EdgeInsets.fromLTRB(
+          16, 12, 16, 24 + MediaQuery.of(context).padding.bottom),
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
@@ -53,10 +55,15 @@ class BottomSheetFase extends StatelessWidget {
             children: [
               Text(
                 '$percentual% dos cards vistos',
-                style: const TextStyle(fontSize: 11, color: AppColors.tintaSuave),
+                style:
+                    const TextStyle(fontSize: 11, color: AppColors.tintaSuave),
               ),
               const SizedBox(height: 6),
-              BarraPapel(item.percentualVisto, AppColors.laranja, altura: 8),
+              BarraPapel(
+                progresso: item.percentualVisto,
+                cor: AppColors.laranja,
+                altura: 8,
+              ),
             ],
           ),
           const SizedBox(height: 16),
@@ -72,7 +79,9 @@ class BottomSheetFase extends StatelessWidget {
               },
               child: Center(
                 child: Text(
-                  item.cardsVistos > 0 ? '▶ Continuar Flashcards' : '▶ Iniciar Flashcards',
+                  item.cardsVistos > 0
+                      ? '▶ Continuar Flashcards'
+                      : '▶ Iniciar Flashcards',
                 ),
               ),
             ),

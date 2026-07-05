@@ -63,7 +63,8 @@ class _SecoesScreenState extends State<SecoesScreen> with RouteAware {
   }
 
   void _abrirModo(BuildContext context, String rota) {
-    context.push('$rota/${widget.temaId}?nomeTema=${Uri.encodeComponent(widget.nomeTema)}');
+    context.push(
+        '$rota/${widget.temaId}?nomeTema=${Uri.encodeComponent(widget.nomeTema)}');
   }
 
   void _abrirPopupBichinho(BuildContext context, SecoesController ctrl) {
@@ -90,7 +91,8 @@ class _SecoesScreenState extends State<SecoesScreen> with RouteAware {
       ),
       body: FundoPapel(
         child: ctrl.carregando
-            ? const Center(child: CircularProgressIndicator(color: AppColors.laranja))
+            ? const Center(
+                child: CircularProgressIndicator(color: AppColors.laranja))
             : ListView(
                 padding: const EdgeInsets.all(16),
                 children: [
@@ -115,15 +117,20 @@ class _SecoesScreenState extends State<SecoesScreen> with RouteAware {
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
                             const Text('Progresso geral',
-                                style: TextStyle(fontSize: 11, color: AppColors.tintaSuave)),
+                                style: TextStyle(
+                                    fontSize: 11, color: AppColors.tintaSuave)),
                             Text(
                               '${(ctrl.progressoGeral * 100).round()}% concluído',
-                              style: const TextStyle(fontSize: 11, color: AppColors.tintaSuave),
+                              style: const TextStyle(
+                                  fontSize: 11, color: AppColors.tintaSuave),
                             ),
                           ],
                         ),
                         const SizedBox(height: 6),
-                        BarraPapel(ctrl.progressoGeral, acento, altura: 10),
+                        BarraPapel(
+                            progresso: ctrl.progressoGeral,
+                            cor: acento,
+                            altura: 10),
                       ],
                     ),
                   ),
@@ -185,9 +192,11 @@ class _SecoesScreenState extends State<SecoesScreen> with RouteAware {
                           child: _SecaoCard(
                             secao: entry.value,
                             destaque: entry.value.ordem == 0,
-                            percentual: ctrl.progressoPorSecao[entry.value.id] ?? 0.0,
+                            percentual:
+                                ctrl.progressoPorSecao[entry.value.id] ?? 0.0,
                             acento: acento,
-                            onTap: () => _navegarParaTrilha(context, entry.value),
+                            onTap: () =>
+                                _navegarParaTrilha(context, entry.value),
                           ),
                         ),
                       )),
@@ -233,11 +242,12 @@ class _SecaoCard extends StatelessWidget {
                     style: Theme.of(context).textTheme.titleMedium,
                   ),
                 ),
-                Icon(Icons.chevron_right, color: destaque ? acento : AppColors.tintaSuave),
+                Icon(Icons.chevron_right,
+                    color: destaque ? acento : AppColors.tintaSuave),
               ],
             ),
             const SizedBox(height: 8),
-            BarraPapel(percentual, acento, altura: 8),
+            BarraPapel(progresso: percentual, cor: acento, altura: 8),
             const SizedBox(height: 2),
             Text(
               '${(percentual * 100).round()}%',
@@ -286,7 +296,8 @@ class _ModoPostIt extends StatelessWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(titulo, style: Theme.of(context).textTheme.titleMedium),
+                    Text(titulo,
+                        style: Theme.of(context).textTheme.titleMedium),
                     const SizedBox(height: 2),
                     Text(
                       subtitulo,
@@ -298,7 +309,8 @@ class _ModoPostIt extends StatelessWidget {
                   ],
                 ),
               ),
-              if (!desabilitado) const Icon(Icons.chevron_right, color: AppColors.tinta),
+              if (!desabilitado)
+                const Icon(Icons.chevron_right, color: AppColors.tinta),
             ],
           ),
         ),

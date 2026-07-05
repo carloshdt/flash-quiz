@@ -8,21 +8,24 @@ import '../../../widgets/papel/botao_papel.dart';
 class BottomSheetQuiz extends StatelessWidget {
   final ItemTrilha item;
   final String nomeTema;
-  const BottomSheetQuiz({super.key, required this.item, required this.nomeTema});
+  const BottomSheetQuiz(
+      {super.key, required this.item, required this.nomeTema});
 
   // Linha de regra do quiz
   Widget _regra(String icone, String texto) => Padding(
-    padding: const EdgeInsets.only(bottom: 6),
-    child: Row(
-      children: [
-        Text(icone, style: const TextStyle(fontSize: 13)),
-        const SizedBox(width: 8),
-        Expanded(
-          child: Text(texto, style: const TextStyle(fontSize: 11, color: AppColors.tintaSuave)),
+        padding: const EdgeInsets.only(bottom: 6),
+        child: Row(
+          children: [
+            Text(icone, style: const TextStyle(fontSize: 13)),
+            const SizedBox(width: 8),
+            Expanded(
+              child: Text(texto,
+                  style: const TextStyle(
+                      fontSize: 11, color: AppColors.tintaSuave)),
+            ),
+          ],
         ),
-      ],
-    ),
-  );
+      );
 
   @override
   Widget build(BuildContext context) {
@@ -34,7 +37,8 @@ class BottomSheetQuiz extends StatelessWidget {
         color: AppColors.papel,
         borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
       ),
-      padding: EdgeInsets.fromLTRB(16, 12, 16, 24 + MediaQuery.of(context).padding.bottom),
+      padding: EdgeInsets.fromLTRB(
+          16, 12, 16, 24 + MediaQuery.of(context).padding.bottom),
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
@@ -59,7 +63,8 @@ class BottomSheetQuiz extends StatelessWidget {
                   color: AppColors.verde,
                   borderRadius: BorderRadius.circular(10),
                 ),
-                child: const Center(child: Text('📝', style: TextStyle(fontSize: 22))),
+                child: const Center(
+                    child: Text('📝', style: TextStyle(fontSize: 22))),
               ),
               const SizedBox(width: 12),
               Column(
@@ -73,7 +78,8 @@ class BottomSheetQuiz extends StatelessWidget {
                         ?.copyWith(color: AppColors.tinta),
                   ),
                   const Text('Fase de avaliação',
-                      style: TextStyle(fontSize: 10, color: AppColors.tintaSuave)),
+                      style:
+                          TextStyle(fontSize: 10, color: AppColors.tintaSuave)),
                 ],
               ),
             ],
@@ -92,7 +98,8 @@ class BottomSheetQuiz extends StatelessWidget {
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 const Text('Melhor resultado',
-                    style: TextStyle(fontSize: 11, color: AppColors.tintaSuave)),
+                    style:
+                        TextStyle(fontSize: 11, color: AppColors.tintaSuave)),
                 Text(
                   temResultado
                       ? '${'★' * melhor.estrelas}${'☆' * (5 - melhor.estrelas)} ${melhor.pontuacao}pts'
@@ -100,7 +107,8 @@ class BottomSheetQuiz extends StatelessWidget {
                   style: TextStyle(
                     fontSize: 11,
                     fontWeight: FontWeight.w700,
-                    color: temResultado ? AppColors.tinta : AppColors.tintaSuave,
+                    color:
+                        temResultado ? AppColors.tinta : AppColors.tintaSuave,
                   ),
                 ),
               ],

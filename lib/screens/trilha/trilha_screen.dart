@@ -6,6 +6,7 @@ import '../../controllers/trilha_controller.dart';
 import '../../theme/app_theme.dart';
 import '../../widgets/papel/barra_papel.dart';
 import '../../widgets/papel/fundo_papel.dart';
+import '../../widgets/papel/papel_util.dart';
 import 'widgets/no_fase_widget.dart';
 import 'widgets/no_quiz_widget.dart';
 import 'widgets/bottom_sheet_fase.dart';
@@ -74,7 +75,8 @@ class _TrilhaScreenState extends State<TrilhaScreen> {
     final ctrl = context.watch<TrilhaController>();
     final acento = AppColors.accentFor(widget.temaId);
     final totalFases = ctrl.itens.where((i) => !i.ehQuiz).length;
-    final fasesCompletas = ctrl.itens.where((i) => !i.ehQuiz && i.concluido).length;
+    final fasesCompletas =
+        ctrl.itens.where((i) => !i.ehQuiz && i.concluido).length;
 
     final screenWidth = MediaQuery.of(context).size.width;
     final screenHeight = MediaQuery.of(context).size.height;
@@ -110,8 +112,8 @@ class _TrilhaScreenState extends State<TrilhaScreen> {
           child: Padding(
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
             child: BarraPapel(
-              totalFases > 0 ? fasesCompletas / totalFases : 0,
-              acento,
+              progresso: totalFases > 0 ? fasesCompletas / totalFases : 0,
+              cor: acento,
               altura: 8,
             ),
           ),
@@ -119,97 +121,107 @@ class _TrilhaScreenState extends State<TrilhaScreen> {
       ),
       body: FundoPapel(
         child: ctrl.carregando
-            ? const Center(child: CircularProgressIndicator(color: AppColors.laranja))
+            ? const Center(
+                child: CircularProgressIndicator(color: AppColors.laranja))
             : SafeArea(
-        top: false,
-        child: CustomScrollView(
-        reverse: true,
-        slivers: [
-          SliverPadding(
-              padding: const EdgeInsets.symmetric(vertical: 16),
-              sliver: SliverList(
-                delegate: SliverChildBuilderDelegate(
-                  (context, index) {
-                    final item = ctrl.itens[index];
-                    final posH = _posicaoHorizontal(index);
-                    final nodeSize = item.ehQuiz ? nodeSizeQuiz : nodeSizeFase;
+                top: false,
+                child: CustomScrollView(
+                  reverse: true,
+                  slivers: [
+                    SliverPadding(
+                      padding: const EdgeInsets.symmetric(vertical: 16),
+                      sliver: SliverList(
+                        delegate: SliverChildBuilderDelegate(
+                          (context, index) {
+                            final item = ctrl.itens[index];
+                            final posH = _posicaoHorizontal(index);
+                            final nodeSize =
+                                item.ehQuiz ? nodeSizeQuiz : nodeSizeFase;
 
-                    final temProximo = index < ctrl.itens.length - 1;
-                    final nextPosH =
-                        temProximo ? _posicaoHorizontal(index + 1) : posH;
+                            final temProximo = index < ctrl.itens.length - 1;
+                            final nextPosH = temProximo
+                                ? _posicaoHorizontal(index + 1)
+                                : posH;
 
-                    return SizedBox(
-                      height: rowHeight,
-                      child: Stack(
-                        clipBehavior: Clip.none,
-                        children: [
-                          // Conector diagonal vai de baixo pra cima (reverse: true)
-                          if (temProximo)
-                            Positioned.fill(
-                              child: ClipRect(
-                                child: CustomPaint(
-                                  painter: _ConectorPainter(
-                                    xInicio: screenWidth * posH,
-                                    yInicio: rowHeight - nodeSize, // topo do nó (nó fica embaixo)
-                                    xFim: screenWidth * nextPosH,
-                                    yFim: 0, // topo do widget = fundo do próximo item
-                                    cor: AppColors.grao,
-                                  ),
-                                ),
-                              ),
-                            ),
-
-                          // Nó no fundo do row, label acima
-                          Positioned(
-                            left: screenWidth * posH - (nodeSize + 16) / 2,
-                            bottom: 0,
-                            child: Column(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                SizedBox(
-                                  width: nodeSize + 16,
-                                  child: Text(
-                                    item.ehQuiz ? 'Quiz' : item.fase.nome,
-                                    style: TextStyle(
-                                      fontSize: 11,
-                                      color: item.desbloqueado
-                                          ? AppColors.tinta
-                                          : AppColors.tintaSuave,
-                                      fontWeight: FontWeight.w700,
-                                    ),
-                                    textAlign: TextAlign.center,
-                                    maxLines: 2,
-                                    overflow: TextOverflow.ellipsis,
-                                  ),
-                                ),
-                                const SizedBox(height: 4),
-                                item.ehQuiz
-                                    ? NoQuizWidget(
-                                        item: item,
-                                        size: nodeSizeQuiz,
-                                        onTap: () =>
-                                            _abrirBottomSheetQuiz(context, item),
-                                      )
-                                    : NoFaseWidget(
-                                        item: item,
-                                        size: nodeSizeFase,
-                                        onTap: () =>
-                                            _abrirBottomSheetFase(context, item),
+                            return SizedBox(
+                              height: rowHeight,
+                              child: Stack(
+                                clipBehavior: Clip.none,
+                                children: [
+                                  // Conector diagonal vai de baixo pra cima (reverse: true)
+                                  if (temProximo)
+                                    Positioned.fill(
+                                      child: ClipRect(
+                                        child: CustomPaint(
+                                          painter: _ConectorPainter(
+                                            xInicio: screenWidth * posH,
+                                            yInicio: rowHeight -
+                                                nodeSize, // topo do nó (nó fica embaixo)
+                                            xFim: screenWidth * nextPosH,
+                                            yFim:
+                                                0, // topo do widget = fundo do próximo item
+                                            cor: AppColors.grao,
+                                          ),
+                                        ),
                                       ),
-                              ],
-                            ),
-                          ),
-                        ],
+                                    ),
+
+                                  // Nó no fundo do row, label acima
+                                  Positioned(
+                                    left: screenWidth * posH -
+                                        (nodeSize + 16) / 2,
+                                    bottom: 0,
+                                    child: Column(
+                                      mainAxisSize: MainAxisSize.min,
+                                      children: [
+                                        SizedBox(
+                                          width: nodeSize + 16,
+                                          child: Text(
+                                            item.ehQuiz
+                                                ? 'Quiz'
+                                                : item.fase.nome,
+                                            style: TextStyle(
+                                              fontSize: 11,
+                                              color: item.desbloqueado
+                                                  ? AppColors.tinta
+                                                  : AppColors.tintaSuave,
+                                              fontWeight: FontWeight.w700,
+                                            ),
+                                            textAlign: TextAlign.center,
+                                            maxLines: 2,
+                                            overflow: TextOverflow.ellipsis,
+                                          ),
+                                        ),
+                                        const SizedBox(height: 4),
+                                        item.ehQuiz
+                                            ? NoQuizWidget(
+                                                item: item,
+                                                size: nodeSizeQuiz,
+                                                onTap: () =>
+                                                    _abrirBottomSheetQuiz(
+                                                        context, item),
+                                              )
+                                            : NoFaseWidget(
+                                                item: item,
+                                                size: nodeSizeFase,
+                                                onTap: () =>
+                                                    _abrirBottomSheetFase(
+                                                        context, item),
+                                              ),
+                                      ],
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            );
+                          },
+                          childCount: ctrl.itens.length,
+                        ),
                       ),
-                    );
-                  },
-                  childCount: ctrl.itens.length,
+                    ),
+                  ],
                 ),
               ),
-            ),
-        ],
-        ),
-      ),
       ),
     );
   }
@@ -247,15 +259,7 @@ class _ConectorPainter extends CustomPainter {
       ..cubicTo(xInicio, mid, xFim, mid, xFim, yFim);
 
     // Tracejado tipo costura ao longo da curva
-    const dash = 8.0, gap = 6.0;
-    for (final metric in path.computeMetrics()) {
-      double distancia = 0;
-      while (distancia < metric.length) {
-        final fim = (distancia + dash).clamp(0.0, metric.length);
-        canvas.drawPath(metric.extractPath(distancia, fim), paint);
-        distancia += dash + gap;
-      }
-    }
+    desenharTracejado(canvas, path, paint);
   }
 
   @override

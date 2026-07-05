@@ -8,7 +8,12 @@ class BarraPapel extends StatelessWidget {
   final Color cor;
   final double altura;
 
-  const BarraPapel(this.progresso, this.cor, {super.key, this.altura = 8});
+  const BarraPapel({
+    super.key,
+    required this.progresso,
+    required this.cor,
+    this.altura = 8,
+  });
 
   @override
   Widget build(BuildContext context) {
