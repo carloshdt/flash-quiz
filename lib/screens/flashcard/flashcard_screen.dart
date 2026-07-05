@@ -3,6 +3,12 @@ import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../controllers/flashcard_controller.dart';
+import '../../services/audio_service.dart';
+import '../../theme/app_theme.dart';
+import '../../widgets/bichinho/evolucao_overlay.dart';
+import '../../widgets/papel/botao_papel.dart';
+import '../../widgets/papel/fundo_papel.dart';
+import '../../widgets/papel/papel_card.dart';
 import 'widgets/botao_avaliacao.dart';
 import 'widgets/card_face.dart';
 
@@ -56,15 +62,28 @@ class _FlashcardScreenState extends State<FlashcardScreen>
 
   void _virar() {
     if (!_mostrandoFrente) return;
+    final audio = context.read<AudioService>();
+    audio.tocar(Som.papelVirar);
+    audio.vibrar(Vibracao.leve);
     _flipCtrl.forward();
     setState(() => _mostrandoFrente = false);
     context.read<FlashcardController>().virar();
   }
 
   Future<void> _avaliar(int nivelSrs) async {
-    await context.read<FlashcardController>().avaliar(nivelSrs);
+    final audio = context.read<AudioService>();
+    final ctrl = context.read<FlashcardController>();
+    audio.vibrar(Vibracao.leve);
+    await ctrl.avaliar(nivelSrs);
+    if (!mounted) return;
     _flipCtrl.reset();
     setState(() => _mostrandoFrente = true);
+    // Evolução dispara depois do estado avançar — overlay por cima do próximo card
+    if (ctrl.ultimoAlimentar?.evoluiu == true) {
+      audio.tocar(Som.pixelEvolucao);
+      audio.vibrar(Vibracao.pesada);
+      await mostrarEvolucao(context, ctrl.ultimoAlimentar!.bichinho);
+    }
   }
 
   @override
@@ -72,29 +91,36 @@ class _FlashcardScreenState extends State<FlashcardScreen>
     final ctrl = context.watch<FlashcardController>();
 
     return Scaffold(
-      backgroundColor: const Color(0xFF151C35),
+      backgroundColor: AppColors.papel,
       appBar: AppBar(
-        backgroundColor: const Color(0xFF151C35),
+        backgroundColor: AppColors.papel,
         elevation: 0,
         leading: IconButton(
-          icon: const Icon(Icons.close, color: Colors.white),
+          icon: const Icon(Icons.close, color: AppColors.tinta),
           onPressed: () => Navigator.of(context).pop(),
         ),
         title: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(widget.nomeFase,
-                style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 14)),
+                style: const TextStyle(
+                    fontWeight: FontWeight.w800,
+                    fontSize: 14,
+                    color: AppColors.tinta)),
             Text(widget.nomeTema,
-                style: const TextStyle(fontSize: 11, color: Color(0xFF90CAF9))),
+                style: const TextStyle(
+                    fontSize: 11, color: AppColors.tintaSuave)),
           ],
         ),
       ),
-      body: ctrl.carregando
-          ? const Center(child: CircularProgressIndicator(color: Color(0xFF7C4DFF)))
-          : ctrl.sessaoConcluida
-              ? _buildSessaoConcluida(context, ctrl)
-              : _buildSessao(context, ctrl),
+      body: FundoPapel(
+        child: ctrl.carregando
+            ? const Center(
+                child: CircularProgressIndicator(color: AppColors.laranja))
+            : ctrl.sessaoConcluida
+                ? _buildSessaoConcluida(context, ctrl)
+                : _buildSessao(context, ctrl),
+      ),
     );
   }
 
@@ -123,8 +149,7 @@ class _FlashcardScreenState extends State<FlashcardScreen>
                         ? CardFace(
                             texto: card.pergunta,
                             label: 'PERGUNTA',
-                            cor: const Color(0xFF1C2040),
-                            corBorda: const Color(0xFF3A3A5A),
+                            cor: AppColors.cartao,
                           )
                         : Transform(
                             alignment: Alignment.center,
@@ -132,8 +157,7 @@ class _FlashcardScreenState extends State<FlashcardScreen>
                             child: CardFace(
                               texto: card.resposta,
                               label: 'RESPOSTA',
-                              cor: const Color(0xFF1A2A1A),
-                              corBorda: const Color(0xFF2A5A2A),
+                              cor: const Color(0xFFFFFDF7), // verso creme
                             ),
                           ),
                   );
@@ -146,7 +170,7 @@ class _FlashcardScreenState extends State<FlashcardScreen>
               duration: const Duration(milliseconds: 200),
               child: const Text(
                 'Toque no card para ver a resposta',
-                style: TextStyle(fontSize: 12, color: Color(0xFF555577)),
+                style: TextStyle(fontSize: 12, color: AppColors.tintaSuave),
               ),
             ),
             const Spacer(),
@@ -169,24 +193,22 @@ class _FlashcardScreenState extends State<FlashcardScreen>
             BotaoAvaliacao(
               emoji: '😓',
               label: 'Difícil',
-              cor: const Color(0xFFB71C1C),
-              corBorda: const Color(0xFFEF9A9A),
+              cor: AppColors.laranja,
               onTap: () => _avaliar(0),
             ),
             const SizedBox(width: 10),
             BotaoAvaliacao(
               emoji: '🤔',
               label: 'Médio',
-              cor: const Color(0xFFE65100),
-              corBorda: const Color(0xFFFFCC80),
+              cor: AppColors.amarelo,
+              corTexto: AppColors.tinta, // amarelo com texto branco não lê
               onTap: () => _avaliar(1),
             ),
             const SizedBox(width: 10),
             BotaoAvaliacao(
               emoji: '😊',
               label: 'Fácil',
-              cor: const Color(0xFF1B5E20),
-              corBorda: const Color(0xFFA5D6A7),
+              cor: AppColors.verde,
               onTap: () => _avaliar(2),
             ),
           ],
@@ -203,33 +225,44 @@ class _FlashcardScreenState extends State<FlashcardScreen>
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              const Text('🎉', style: TextStyle(fontSize: 64)),
-              const SizedBox(height: 16),
-              const Text(
-                'Sessão concluída!',
-                style: TextStyle(
-                    fontSize: 22, fontWeight: FontWeight.w800, color: Colors.white),
-              ),
-              const SizedBox(height: 8),
-              Text(
-                '${ctrl.totalSessao} cards revisados',
-                style: const TextStyle(fontSize: 14, color: Color(0xFF90CAF9)),
+              PapelCard(
+                seed: widget.faseId,
+                padding: const EdgeInsets.all(24),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    const Text('🎉', style: TextStyle(fontSize: 64)),
+                    const SizedBox(height: 16),
+                    const Text(
+                      'Sessão concluída!',
+                      style: TextStyle(
+                          fontSize: 22,
+                          fontWeight: FontWeight.w800,
+                          color: AppColors.tinta),
+                    ),
+                    const SizedBox(height: 8),
+                    Text(
+                      '${ctrl.totalSessao} cards revisados',
+                      style: const TextStyle(
+                          fontSize: 14, color: AppColors.tintaSuave),
+                    ),
+                  ],
+                ),
               ),
               const SizedBox(height: 40),
               SizedBox(
                 width: double.infinity,
-                child: ElevatedButton(
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xFF7C4DFF),
-                    padding: const EdgeInsets.symmetric(vertical: 14),
-                    shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(10)),
-                  ),
+                child: BotaoPapel(
+                  cor: AppColors.laranja,
                   onPressed: () => Navigator.of(context).pop(),
-                  child: const Text(
-                    'Voltar à trilha',
-                    style: TextStyle(
-                        fontWeight: FontWeight.w800, fontSize: 14, color: Colors.white),
+                  child: const Center(
+                    child: Text(
+                      'Voltar à trilha',
+                      style: TextStyle(
+                          fontWeight: FontWeight.w800,
+                          fontSize: 14,
+                          color: Colors.white),
+                    ),
                   ),
                 ),
               ),
@@ -240,4 +273,3 @@ class _FlashcardScreenState extends State<FlashcardScreen>
     );
   }
 }
-
