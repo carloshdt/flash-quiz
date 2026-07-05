@@ -10,6 +10,7 @@ class AppColors {
   // Fundação
   static const Color papel = Color(0xFFF2EDE4);      // fundo geral — papel creme
   static const Color cartao = Color(0xFFFFFFFF);     // superfícies/cards
+  static const Color papelVerso = Color(0xFFFFFDF7); // verso do flashcard — creme quase-branco
   static const Color tinta = Color(0xFF33302A);      // texto principal
   static const Color tintaSuave = Color(0xFF8A8378); // texto secundário — lápis
   static const Color grao = Color(0xFFD8D0C0);       // grão do papel, divisores

@@ -66,7 +66,7 @@ class _RevisaoScreenState extends State<RevisaoScreen>
   Future<void> _avaliar(int nivelSrs) async {
     final audio = context.read<AudioService>();
     final ctrl = context.read<RevisaoController>();
-    audio.vibrar(Vibracao.leve);
+    // Haptic do tap já vem do BotaoPapel dentro do BotaoAvaliacao
     await ctrl.avaliar(nivelSrs);
     if (!mounted) return;
     _flipCtrl.reset();
@@ -153,7 +153,7 @@ class _RevisaoScreenState extends State<RevisaoScreen>
                             child: CardFace(
                               texto: card.resposta,
                               label: 'RESPOSTA',
-                              cor: const Color(0xFFFFFDF7), // verso creme
+                              cor: AppColors.papelVerso, // verso creme
                             ),
                           ),
                   );

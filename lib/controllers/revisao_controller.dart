@@ -83,13 +83,14 @@ class RevisaoController extends ChangeNotifier {
 
   Future<void> avaliar(int nivelSrs) async {
     if (!_virado || _sessaoConcluida) return;
+    // Fecha o guard ANTES do primeiro await — double-tap não avalia 2x
+    _virado = false;
     final card = _cards[_indiceAtual];
 
     await _progressoRepo.salvarProgresso(card.id, nivelSrs);
     await _metrica.cardAvaliado(card.id, nivelSrs, nomeTema);
 
     _indiceAtual++;
-    _virado = false;
 
     if (_indiceAtual >= _cards.length) {
       _sessaoConcluida = true;

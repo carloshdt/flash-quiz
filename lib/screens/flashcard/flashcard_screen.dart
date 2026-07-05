@@ -73,7 +73,7 @@ class _FlashcardScreenState extends State<FlashcardScreen>
   Future<void> _avaliar(int nivelSrs) async {
     final audio = context.read<AudioService>();
     final ctrl = context.read<FlashcardController>();
-    audio.vibrar(Vibracao.leve);
+    // Haptic do tap já vem do BotaoPapel dentro do BotaoAvaliacao
     await ctrl.avaliar(nivelSrs);
     if (!mounted) return;
     _flipCtrl.reset();
@@ -157,7 +157,7 @@ class _FlashcardScreenState extends State<FlashcardScreen>
                             child: CardFace(
                               texto: card.resposta,
                               label: 'RESPOSTA',
-                              cor: const Color(0xFFFFFDF7), // verso creme
+                              cor: AppColors.papelVerso, // verso creme
                             ),
                           ),
                   );
