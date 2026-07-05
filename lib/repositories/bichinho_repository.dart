@@ -1,6 +1,6 @@
 // lib/repositories/bichinho_repository.dart
 // Bichinho virtual: criação, alimentação (energia), evolução e humor.
-// Streak lido de perfil.streak_atual (>0 = ativo). Config define valores.
+// Streak ativo = atividade em eventos hoje ou ontem (fonte interina até o Plano 4).
 import '../db/database_helper.dart';
 import '../models/bichinho.dart';
 import 'config_repository.dart';
@@ -103,12 +103,20 @@ class BichinhoRepository {
     return HumorBichinho.feliz;
   }
 
-  /// Multiplicador de energia quando o streak está ativo (perfil.streak_atual > 0).
+  /// Multiplicador de energia quando o streak está ativo.
+  ///
+  /// Fonte interina (spec §2.4): streak ativo = existe atividade registrada
+  /// em `eventos` hoje OU ontem (qualquer tema). Quando o Plano 4 implementar
+  /// o streak persistido em `perfil.streak_atual`, basta trocar a fonte aqui
+  /// — a interface do repository não muda.
   Future<double> _multiplicadorStreak() async {
     final banco = await _db.banco;
-    final rows = await banco.query('perfil', limit: 1);
-    final streak = rows.isEmpty ? 0 : (rows.first['streak_atual'] as int? ?? 0);
-    if (streak <= 0) return 1.0;
+    final rows = await banco.rawQuery(
+      '''SELECT COUNT(*) AS n FROM eventos
+         WHERE DATE(criado_em, 'localtime') >= DATE('now', 'localtime', '-1 day')''',
+    );
+    final n = (rows.first['n'] as int?) ?? 0;
+    if (n <= 0) return 1.0;
     final config = await _config.getConfig('bichinho_streak_multiplicador');
     return double.tryParse(config?.valor ?? '1.5') ?? 1.5;
   }

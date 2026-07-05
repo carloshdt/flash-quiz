@@ -301,6 +301,9 @@ Fácil → Médio → Difícil → Simulado final
 - `xpProximoNivel` (nivel × 1000) hardcoded na UI — mover pra config/serviço de perfil
 - Threshold 70 (nota mínima) hardcoded nos controllers de quiz e desafio — ler da config
 - Dialog de confirmação de saída triplicado nas telas de quiz/modos — extrair widget/helper compartilhado
+- Sons `pixel_comer` e `papel_recorte` gerados mas ainda sem gatilho na UI (comer: futuro feedback de alimentação; recorte: transição de tela)
+- Multiplicador de streak do bichinho usa fonte interina via `eventos` (atividade hoje/ontem) — trocar pra streak persistido (`perfil.streak_atual`) no Plano 4
+- Métricas `bichinho_alimentado` sem campo multiplicador e `bichinho_popup_aberto` sem humor (spec §2.5) — adicionar quando for tunar economia
 
 ### Plano 5 — Conteúdo Real CFC
 

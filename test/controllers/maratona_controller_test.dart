@@ -113,9 +113,11 @@ void main() {
     expect(resultado.score, 2);
     expect(resultado.recordeBatido, isTrue);
 
-    // Bichinho alimentado com a energia de modo (10, sem streak ativo)
+    // Bichinho alimentado com energia de modo (10) × 1.5 de streak ativo:
+    // os eventos da própria sessão contam como atividade de hoje (fonte
+    // interina do streak via eventos — spec §2.4)
     expect(ctrl.ultimoAlimentar, isNotNull);
-    expect(ctrl.ultimoAlimentar!.energiaGanha, 10);
+    expect(ctrl.ultimoAlimentar!.energiaGanha, 15);
     ctrl.dispose();
   });
 }

@@ -33,10 +33,12 @@ void main() {
     expect(r2.bichinho.id, r.bichinho.id);
   });
 
-  test('alimentar sem streak soma energia base', () async {
+  test('alimentar sem eventos recentes (streak inativo) soma energia base', () async {
     final temaId = await criarTema();
     final repo = BichinhoRepository();
     await repo.obterOuCriar(temaId);
+    // sem nenhum evento registrado = streak inativo → multiplicador 1.0
+    // (alimentar em si não grava eventos — repository puro)
     final r = await repo.alimentar(temaId, 10);
     expect(r.energiaGanha, 10);
     expect(r.bichinho.energia, 10);
@@ -46,8 +48,11 @@ void main() {
   test('alimentar com streak ativo aplica multiplicador 1.5 arredondado pra baixo', () async {
     final temaId = await criarTema();
     final db = await DatabaseHelper().banco;
-    // streak ativo no perfil (linha seedada na migration v1)
-    await db.update('perfil', {'streak_atual': 3});
+    // streak ativo = atividade registrada ontem em eventos (fonte interina, spec §2.4)
+    await db.rawInsert(
+      "INSERT INTO eventos (evento, tema, criado_em) VALUES (?, ?, datetime('now', '-1 day'))",
+      ['card_avaliado', 'CFC'],
+    );
     final repo = BichinhoRepository();
     await repo.obterOuCriar(temaId);
     final r = await repo.alimentar(temaId, 15);

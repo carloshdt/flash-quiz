@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 import '../../app.dart';
 import '../../controllers/home_controller.dart';
+import '../../services/audio_service.dart';
 import '../../theme/app_theme.dart';
 import '../../widgets/papel/entrada_cascata.dart';
 import '../../widgets/papel/fundo_papel.dart';
@@ -20,6 +21,24 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> with RouteAware {
+  // Toggle único de "efeitos" (som + haptics juntos) — simples pro usuário;
+  // os serviços continuam separados por baixo
+  late bool _efeitosAtivos;
+
+  @override
+  void initState() {
+    super.initState();
+    _efeitosAtivos = context.read<AudioService>().somAtivo;
+  }
+
+  Future<void> _alternarEfeitos() async {
+    final audio = context.read<AudioService>();
+    final novo = !_efeitosAtivos;
+    setState(() => _efeitosAtivos = novo);
+    await audio.setSomAtivo(novo);
+    await audio.setHapticsAtivo(novo);
+  }
+
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
@@ -88,6 +107,14 @@ class _HomeScreenState extends State<HomeScreen> with RouteAware {
                                         ?.copyWith(height: 1.1),
                                   ),
                                 ],
+                              ),
+                            ),
+                            IconButton(
+                              tooltip: 'Sons e vibração',
+                              onPressed: _alternarEfeitos,
+                              icon: Icon(
+                                _efeitosAtivos ? Icons.volume_up : Icons.volume_off,
+                                color: AppColors.tintaSuave,
                               ),
                             ),
                             if (ctrl.perfil != null)
